@@ -1,0 +1,16 @@
+.chat-message-box {
+    padding : .5rem 1rem;
+
+    background-color : var(--color-wetsand);
+    border-radius : 1rem;
+}
+
+.origin-left {
+    align-self : flex-start;
+    border-bottom-left-radius : 0;
+}
+
+.origin-right {
+    align-self : flex-end;
+    border-bottom-right-radius : 0;
+}

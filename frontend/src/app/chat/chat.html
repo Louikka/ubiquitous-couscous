@@ -1,6 +1,11 @@
-<div class="max-w-lg mx-auto flex flex-col">
-    <div class="absolute bottom-0 left-1/2 -translate-1/2">
-        <app-message-box />
+<div class="w-full max-w-lg h-full mx-auto p-[.5rem]">
+    <div class="relative w-full h-full p-[.5rem] flex flex-col bg-(--color-paleoak) rounded-md shadow-md">
+        <div class="grow p-[.5rem] flex flex-col gap-[.5rem]">
+            <div class="chat-message-box origin-left"> <app-message /> </div>
+            <div class="chat-message-box origin-right"> <app-message /> </div>
+        </div>
+        <div class="p-[.5rem] bg-(--color-darkspruce) rounded-md">
+            <app-message-box />
+        </div>
     </div>
-    <app-message />
 </div>
