@@ -5,19 +5,22 @@ import { Messages } from '../messages';
 
 
 @Component({
-  selector: 'app-chat',
-  imports: [Message, MessageBox],
-  templateUrl: './chat.html',
-  styleUrl: './chat.css',
+    selector : 'app-chat',
+    imports : [ Message, MessageBox ],
+    templateUrl : './chat.html',
+    styleUrl : './chat.css',
 })
-export class Chat implements OnInit {
-  private messagesService = inject(Messages);
-  private messages: object[] = [];
+export class Chat implements OnInit
+{
+    private messagesService = inject(Messages);
+    private messages: object[] = [];
 
-  ngOnInit() {
-    this.messagesService.getData().subscribe((val) => {
-      this.messages = val;
-      console.log(val);
-    });
-  }
+    public ngOnInit()
+    {
+        this.messagesService.getData().subscribe((val) =>
+        {
+            this.messages = val;
+            console.log(val);
+        });
+    }
 }
