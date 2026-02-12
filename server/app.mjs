@@ -11,7 +11,7 @@ app.get('/', (req, res) =>
     res.send('Hello World!');
 });
 
-app.get('/messages', (req, res) =>
+app.get('/api/messages', (req, res) =>
 {
     res.send(JSON.stringify([
         {

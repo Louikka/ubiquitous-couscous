@@ -20,7 +20,6 @@ export class Chat implements OnInit
         this.messagesService.getData().subscribe((val) =>
         {
             this.messages = val;
-            console.log(val);
         });
     }
 }
