@@ -3,11 +3,23 @@
 @import "tailwindcss";
 
 
+@font-face {
+    font-family : 'Poppins';
+    src : url('./assets/fonts/Poppins-Regular.ttf');
+}
+
+
 :root {
     --color-darkrose : #542437;
     --color-wetsand : #a19363;
     --color-paleoak : #D9CAB3;
     --color-darkspruce : #006137;
+
+    --color-violet : #8d70ab;
+    --color-asphalt : #434b51;
+    --color-palerose : #e5deed;
+    --color-lightgrey : #e7e7e7;
+    --color-white : #fff;
 }
 
 
@@ -17,19 +29,49 @@ html {
 
 body {
     height : 100%;
+
+    font-family : 'Poppins', sans-serif;
+    color : var(--color-asphalt);
 }
 
 * {
     box-sizing : border-box;
 }
 
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+button:not(:disabled) {
+    cursor : pointer;
+}
+
+
+.headline-light {
+    margin : 0;
+    padding : .1rem;
+
+    font-weight : bold;
+    line-height : 1.6;
+    letter-spacing : 0;
+    color : var(--color-violet);
+}
+.headline-dark {
+    margin : 0;
+    padding : .1rem .25rem;
+
+    background-color : var(--color-asphalt);
+
+    font-weight : bold;
+    line-height : 1.6;
+    letter-spacing : 0;
+    color : var(--color-white);
+}
 
 .gradient-background {
     --size : 100px;
     --c1 : var(--color-wetsand);
     --c2 : var(--color-darkrose);
 
-    --l1 : transparent  48%, var(--c1) 0 52%, transparent 0;
+    --l1 : transparent 48%, var(--c1) 0 52%, transparent 0;
     --l2 : transparent 1.3%, var(--c2) 0 32%, transparent 0;
 
     background :

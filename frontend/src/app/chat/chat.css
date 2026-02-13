@@ -1,7 +1,10 @@
+.border-outline {
+    background-color : var(--color-lightgrey);
+    border : 2px solid var(--color-violet);
+}
+
 .chat-message-box {
     padding : .5rem 1rem;
-
-    background-color : var(--color-wetsand);
     border-radius : 1rem;
 }
 
