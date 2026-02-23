@@ -82,3 +82,11 @@ button:not(:disabled) {
     ;
     background-size: calc(2 * var(--size)) var(--size), var(--size) var(--size);
 }
+
+.scrollable {
+    overflow : auto;
+    scrollbar-width : none;
+    overscroll-behavior : contain;
+
+    min-height : 0;
+}
