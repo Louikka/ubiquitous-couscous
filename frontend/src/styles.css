@@ -1,3 +1,93 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "tailwindcss";
+
+
+@font-face {
+    font-family : 'Poppins';
+    src : url('./assets/fonts/Poppins-Regular.ttf');
+}
+
+
+:root {
+    --color-darkrose : #542437;
+    --color-wetsand : #a19363;
+    --color-paleoak : #D9CAB3;
+    --color-darkspruce : #006137;
+
+    --color-violet : #8d70ab;
+    --color-asphalt : #434b51;
+    --color-palerose : #e5deed;
+    --color-lightgrey : #e7e7e7;
+    --color-white : #fff;
+}
+
+
+html {
+    height : 100%;
+}
+
+body {
+    height : 100%;
+
+    font-family : 'Poppins', sans-serif;
+    color : var(--app-font-main-color);
+}
+/* App light color theme settings. */
+body[data-theme="light"] {
+    --app-main-background-color : var(--color-palerose);
+    --app-chat-background-color : var(--color-white);
+
+    --app-chat-tile-background-color : var(--color-lightgrey);
+    --app-chat-tile-border-color : var(--color-violet);
+
+    --app-font-main-color : var(--color-asphalt);
+    --app-font-sub-color : var(--color-violet);
+}
+/* App dark color theme settings. */
+body[data-theme="dark"] {
+    --app-main-background-color : rgb(29, 29, 29);
+    --app-chat-background-color : rgb(40, 40, 40);
+
+    --app-chat-tile-background-color : rgb(58, 58, 58);
+    --app-chat-tile-border-color : var(--app-chat-tile-background-color);
+
+    --app-font-main-color : Silver; /* LightGrey */
+    --app-font-sub-color : rgb(170, 137, 208);
+}
+
+* {
+    box-sizing : border-box;
+}
+
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+button:not(:disabled) {
+    cursor : pointer;
+}
+
+h1 {
+    margin : 0;
+    padding : .1rem;
+
+    font-weight : bold;
+    line-height : 1.6;
+    letter-spacing : 0;
+    color : var(--app-font-sub-color);
+}
+h1.dark {
+    padding : .1rem .25rem;
+
+    background-color : var(--app-font-main-color);
+
+    color : var(--color-white);
+}
+
+
+.scrollable {
+    overflow : auto;
+    scrollbar-width : none;
+    overscroll-behavior : contain;
+
+    min-height : 0;
+}

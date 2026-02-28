@@ -5,11 +5,12 @@ import { routes } from './app.routes';
 import { Messages } from './messages';
 import { provideHttpClient } from '@angular/common/http';
 
+
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
-    provideHttpClient(),
-    Messages
-  ]
+    providers : [
+        provideBrowserGlobalErrorListeners(),
+        provideRouter(routes),
+        provideHttpClient(),
+        Messages,
+    ],
 };

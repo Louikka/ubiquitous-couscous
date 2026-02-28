@@ -1,6 +1,24 @@
-<div class="max-w-lg mx-auto flex flex-col">
-    <div class="absolute bottom-0 left-1/2 -translate-1/2">
-        <app-message-box />
+<!-- wrapper -->
+<div class="w-full max-w-lg h-full mx-auto p-[.5rem]">
+    <div class="relative w-full h-full p-[.5rem] flex flex-col bg-(--app-chat-background-color) rounded-md shadow-md">
+
+        <!-- chat header -->
+        <div class="tile-generic  p-[.5rem] rounded-md">
+            <app-chat-header />
+        </div>
+
+        <!-- chat body -->
+        <div class="scrollable  grow p-[.5rem] flex flex-col justify-end-safe gap-[.5rem]">
+            <div class="tile-generic chat-message-box origin-left"> <app-chat-message /> </div>
+            <div class="tile-generic chat-message-box origin-right"> <app-chat-message /> </div>
+            <div class="tile-generic chat-message-box origin-left"> <app-chat-message /> </div>
+            <div class="tile-generic chat-message-box origin-left"> <app-chat-message /> </div>
+        </div>
+
+        <!-- chat footer -->
+        <div class="tile-generic  p-[.5rem] rounded-md">
+            <app-chat-enter />
+        </div>
+
     </div>
-    <app-message />
 </div>

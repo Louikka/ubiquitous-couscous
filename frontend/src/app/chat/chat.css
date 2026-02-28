@@ -1,0 +1,20 @@
+.tile-generic {
+    background-color : var(--app-chat-tile-background-color);
+    border : 2px solid var(--app-chat-tile-border-color);
+}
+
+.chat-message-box {
+    padding : .5rem 1rem;
+
+    border-radius : 1rem;
+}
+
+.origin-left {
+    align-self : flex-start;
+    border-bottom-left-radius : 0;
+}
+
+.origin-right {
+    align-self : flex-end;
+    border-bottom-right-radius : 0;
+}
