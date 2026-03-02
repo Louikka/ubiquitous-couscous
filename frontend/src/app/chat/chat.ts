@@ -1,15 +1,17 @@
-import { Component, OnInit, SimpleChanges, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 
 import { AppChatMessage, Messages } from '../messages';
 
 import { ChatEnter } from '../chat-enter/chat-enter';
 import { ChatHeader } from '../chat-header/chat-header';
 import { ChatMessage } from '../chat-message/chat-message';
+import { Observable } from 'rxjs';
 
 
 @Component({
     selector : 'app-chat',
-    imports : [ ChatEnter, ChatHeader, ChatMessage ],
+    imports : [ AsyncPipe,  ChatEnter, ChatHeader, ChatMessage ],
     templateUrl : './chat.html',
     styleUrl : './chat.css',
 })
@@ -17,16 +19,12 @@ export class Chat// implements OnInit
 {
     constructor()
     {
-        this.messagesService.getData().subscribe((val) =>
-        {
-            this.messages = structuredClone(val);
-            console.log(`Got data from (Chat).messagesService : `, val);
-        });
+        this.messages = this.messagesService.getData();
     }
 
     private messagesService = inject(Messages);
 
-    public messages: AppChatMessage[] = [];
+    public messages: Observable<AppChatMessage[]>;
 
     /*
     public ngOnInit()
@@ -39,16 +37,11 @@ export class Chat// implements OnInit
     }
     */
 
-    public receiveMessage(message: string)
+    public sendMessage(message: string)
     {
-        console.log(`(Chat) recieved new message : "${message}".`);
-
-        this.messages.push({
-            id : this.messages.length + 1,
-            origin : 'right',
-            text : message,
+        this.messagesService.sendMessage(message).subscribe((succsess) =>
+        {
+            console.log(succsess);
         });
-
-        console.log(`(Chat).messages has been updated : `, this.messages);
     }
 }

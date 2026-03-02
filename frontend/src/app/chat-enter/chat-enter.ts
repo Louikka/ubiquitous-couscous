@@ -10,15 +10,15 @@ import { Component, EventEmitter, Output } from '@angular/core';
 export class ChatEnter
 {
     @Output()
-    public evEmitter = new EventEmitter<string>();
+    public evMessage = new EventEmitter<string>();
 
     public sendMessage(message: string)
     {
-        let isMessageCanBeSended = message.trim().length > 0;
+        const isMessageCanBeSended = message.trim().length > 0;
 
         if (isMessageCanBeSended)
         {
-            this.evEmitter.emit(message);
+            this.evMessage.emit(message);
         }
         else
         {

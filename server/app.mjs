@@ -1,4 +1,5 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 
 import test_data from './test_data.json' with { type : 'json' };
 
@@ -16,6 +17,13 @@ app.get('/', (req, res) =>
 app.get('/api/messages', (req, res) =>
 {
     res.send(JSON.stringify(test_data));
+});
+
+
+app.post('/api/messages', bodyParser.text(), (req, res) =>
+{
+    console.log(req.body);
+    res.send(null);
 });
 
 

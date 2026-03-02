@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 
 
 export interface AppChatMessage {
@@ -19,14 +19,20 @@ export class Messages
     public getData(): Observable<AppChatMessage[]>
     {
         return this.http.get<AppChatMessage[]>('/api/messages');
-        /*
-        return this.http.get('/api/messages').pipe(
-            map((val) =>
+    }
+
+    public sendMessage(message: string): Observable<boolean>
+    {
+        return this.http.post('/api/messages', message).pipe(
+            catchError((err) =>
             {
-                console.log(val);
-                return val as AppChatMessage[];
+                console.error(err);
+                return of(false);
+            }),
+            map(() =>
+            {
+                return true;
             })
-        );
-        */
+        )
     }
 }
