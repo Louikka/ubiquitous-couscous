@@ -1,12 +1,20 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import redis from 'redis';
 
 import test_data from './test_data.json' with { type : 'json' };
 
 
 const app = express();
+const redisClient = redis.createClient();
 
 const PORT = 3000;
+
+
+redisClient.on('error', (err) =>
+{
+    console.error(`Redis error : `, err);
+});
 
 
 app.get('/', (req, res) =>
