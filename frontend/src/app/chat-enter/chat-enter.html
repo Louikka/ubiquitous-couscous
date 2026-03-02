@@ -1,8 +1,8 @@
 <div class="w-full flex items-center">
     <div class="grow pr-[1rem]">
-        <input class="w-full" type="text" placeholder="Enter message here" />
+        <input class="w-full" #messageInput type="text" placeholder="Enter message here" />
     </div>
     <div>
-        <input class="p-[.1rem]" type="button" value="Send" />
+        <input class="p-[.1rem]" type="button" value="Send" (click)="sendMessageFromElement(messageInput)" />
     </div>
 </div>

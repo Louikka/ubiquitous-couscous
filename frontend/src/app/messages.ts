@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 
 export interface AppChatMessage {
@@ -16,8 +16,10 @@ export class Messages
 {
     private http = inject(HttpClient);
 
-    public getData()
+    public getData(): Observable<AppChatMessage[]>
     {
+        return this.http.get<AppChatMessage[]>('/api/messages');
+        /*
         return this.http.get('/api/messages').pipe(
             map((val) =>
             {
@@ -25,5 +27,6 @@ export class Messages
                 return val as AppChatMessage[];
             })
         );
+        */
     }
 }
