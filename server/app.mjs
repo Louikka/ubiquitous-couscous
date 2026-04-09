@@ -1,32 +1,61 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import redis from 'redis';
-import { WebSocketServer } from 'ws';
 
 
-const app = express();
+const SERVER_PORT = 9000;
+const WSS_PORT = SERVER_PORT + 1;
 
-const redisClient = redis.createClient(/*{ url : 'redis://localhost:39676', }*/);
-redisClient.on('error', (err) => console.error(err));
 
-const wss = new WebSocketServer({ port : 8080, });
-wss.on('connection', function connection(ws) 
+
+/* Initialize WebSocket ******************************************************/
+
+// https://nodejs.org/learn/getting-started/websocket
+
+const _ws_url = `ws://localhost:${WSS_PORT}`;
+const ws = new WebSocket(_ws_url);
+ws.addEventListener('open', (ev) =>
 {
-    ws.on('error', console.error);
+    console.log(`WebSocket connection established at ${_ws_url} !`);
 
-    ws.on('message', function message(data) 
+    const data = { type : 'text', content : 'Hello from Node.js!', };
+    ws.send(JSON.stringify(data));
+});
+ws.addEventListener('message', (ev) =>
+{
+    try
     {
-        console.log('received: %s', data);
-    });
-
-    ws.send('something');
+        const d = JSON.parse(ev.data);
+        console.log('Received JSON : ', d);
+    }
+    catch (err)
+    {
+        console.error('Error parsing JSON : ', err);
+        console.log('|____ Received data was : ', ev.data);
+    }
+});
+ws.addEventListener('close', (ev) =>
+{
+    console.log('WebSocket connection closed :', ev.code, ev.reason);
+});
+ws.addEventListener('error', (ev) =>
+{
+    console.error('----- WebSocket error.');
 });
 
-const PORT = 3000;
 
 
-await redisClient.connect();
+/* Connect Redis *************************************************************/
 
+const RedisClient = redis.createClient(/*{ url : 'redis://localhost:39676', }*/);
+RedisClient.on('error', (err) => console.error('Redis client error : ', err));
+
+await RedisClient.connect();
+
+
+
+/* Express routing ***********************************************************/
+
+const app = express();
 
 app.get('/', (req, res) =>
 {
@@ -35,48 +64,57 @@ app.get('/', (req, res) =>
 
 app.get('/api/messages', async (req, res) =>
 {
-    const _messages = await redisClient.lRange('messages', 0, -1);
+    // get list of all message objects
+    const messages = await RedisClient.lRange('messages', 0, -1);
 
-    /** @type {Message[]} */
-    const data = [];
+    res.send(messages);
 
-    for (let i = 0; i < _messages.length; i++)
+
+    // Uncomment next code if procession of the recieved data is needed.
+
+    // /** @type {Message[]} */
+    // const data = [];
+
+    // for (let i = 0; i < messages.length; i++)
+    // {
+    //     try
+    //     {
+    //         data.push( JSON.parse(messages[i]) );
+    //     }
+    //     catch (err)
+    //     {
+    //         console.error('An error occured while trying to parse messages from server : ', err);
+    //     }
+    // }
+
+    // res.send(JSON.stringify(data));
+});
+
+
+// middleware to parse req.body as JSON
+app.use(express.json());
+
+app.post('/api/messages', async (req, res) =>
+{
+    //console.log(req.body);
+
+    // stringified Message object
+    /** See {@link POSTReqBody}. */
+    const bodyContent = req.body.content;
+
+    await RedisClient.rPush('messages', bodyContent);
+    res.send('Request successfull.');
+
+
+    if (ws.readyState === ws.OPEN)
     {
-        data.push({
-            id : i,
-            origin : 'left',
-            text : _messages[i],
-        });
+        const data = { type : 'message', content : bodyContent, };
+        ws.send(JSON.stringify(data));
     }
-
-    res.send(JSON.stringify(data));
 });
 
 
-app.post('/api/messages', bodyParser.text(), async (req, res) =>
+app.listen(SERVER_PORT, () =>
 {
-    const rBody = req.body;
-
-    await redisClient.rPush('messages', rBody);
-    res.send();
-
-    const _listLen = await redisClient.lLen('messages');
-
-    wss.clients.forEach((wsClient) =>
-    {
-        if (wsClient.OPEN)
-        {
-            wsClient.send(JSON.stringify({ 
-                id : _listLen - 1, 
-                origin : 'left',
-                text : rBody,
-            }));
-        }
-    });
-});
-
-
-app.listen(PORT, () =>
-{
-    console.log(`Example app listening on port http://localhost:${PORT}/`);
+    console.log(`Example app listening on port http://localhost:${SERVER_PORT}/`);
 });

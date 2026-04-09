@@ -1,5 +1,9 @@
 interface Message {
     id: number;
-    origin: 'left' | 'right';
+    user: string | 'self';
     text: string;
+}
+
+interface POSTReqBody {
+    content: string;
 }
