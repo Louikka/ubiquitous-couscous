@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title></title>
+
+    <link rel="stylesheet" href="./src/style.css" />
+
+    <script type="module" src="./src/main.ts" defer></script>
+</head>
+
+
+
+<body>
+    <div id="app" class="h-full  flex flex-col sm:flex-row">
+        <div id="dialog" class="absolute  w-screen h-screen  bg-neutral-950/33" hidden>
+            <div class="absolute top-[50%] left-[50%] translate-[-50%]  w-[90%] h-[90%] p-4  bg-slate-100 rounded-xl">
+                <div>
+                    <form id="get-user-name-form">
+                        <label>
+                            What is your username?
+                            <input id="get-user-name-text" class="border-b-2 border-slate-400" type="text" placeholder="Username" />
+                            <input class="px-2" type="submit" value="Continue" />
+                        </label>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <aside class="p-4  flex flex-col  bg-slate-100">
+            <div class="grow"></div>
+            <div>
+                <div> <span id="username"></span> </div>
+            </div>
+        </aside>
+        <div class="basis-[2px]  bg-slate-300"></div>
+        <main class="grow  flex flex-col  bg-slate-200">
+            <div id="chat" class="grow  p-4  flex flex-col items-start gap-1  bg-slate-100 rounded-b-xl"></div>
+            <div class="p-4">
+                <form id="chat-input-form" class="flex gap-1">
+                    <input
+                        id="chat-input-form-text"
+                        class="w-full max-w-xl  border-b-2 border-slate-400"
+                        type="text"
+                        placeholder="Type here..."
+                    />
+                    <input
+                        class="px-2"
+                        type="submit"
+                        value="Send"
+                    />
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

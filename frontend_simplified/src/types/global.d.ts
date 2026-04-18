@@ -1,4 +1,4 @@
-interface Message {
+interface ChatMessage {
     id: number;
     user: string;
     text: string;
@@ -7,10 +7,10 @@ interface Message {
 
 interface POSTReqBody {
     /** Sent message. */
-    content: Message;
+    content: ChatMessage;
 }
 
 interface WSSendData {
     type: 'message';
-    content: Message;
+    content: ChatMessage;
 }

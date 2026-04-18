@@ -48,7 +48,7 @@ const getDBMessages = async () =>
 /* Initialize WebSocket ******************************************************/
 
 const wss = new WebSocketServer({ port : WSS_PORT, });
-console.debug(`Created WebSocketServer on port ${WSS_PORT}.`);
+console.debug(`Created WebSocketServer.`);
 
 wss.on('connection', async (ws) =>
 {
