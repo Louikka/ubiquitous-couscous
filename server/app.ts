@@ -1,38 +1,12 @@
 import express from 'express';
 import redis from 'redis';
+import cors from 'cors';
 
 import { WebSocketServer } from 'ws';
 
 
-const SERVER_PORT = 9000;
-const WSS_PORT = SERVER_PORT + 1;
-
-
-
-/* Initialize WebSocket ******************************************************/
-
-const wss = new WebSocketServer({ port : WSS_PORT, });
-console.debug(`Created WebSocketServer on port ${WSS_PORT}.`);
-
-wss.on('connection', (ws) =>
-{
-    console.debug(`WebSocket connection established at ws://localhost:${WSS_PORT}!`);
-
-    ws.on('error', (err) =>
-    {
-        console.error('WebSocketServer error : ', err);
-    });
-
-    ws.on('message', (data) =>
-    {
-        console.debug('WebSocketServer received some data...');
-    });
-
-    ws.on('close', (code, reason) =>
-    {
-        console.debug(`WebSocket connection closed.`);
-    });
-});
+const SERVER_PORT = 8081;
+const WSS_PORT = 8080;
 
 
 
@@ -45,6 +19,69 @@ RedisClient.on('error', (err) =>
 });
 
 await RedisClient.connect();
+
+const getDBMessages = async () =>
+{
+    // get list of all message objects (stringified)
+    const data = await RedisClient.lRange('messages', 0, -1);
+
+    const messages: Message[] = [];
+
+    for (const d of data)
+    {
+        try
+        {
+            messages.push( JSON.parse(d) );
+        }
+        catch (err)
+        {
+            console.error('An error occured while trying to parse message from server : ', err);
+            console.debug('Initial data that failed to parse : ', d);
+        }
+    }
+
+    return messages;
+};
+
+
+
+/* Initialize WebSocket ******************************************************/
+
+const wss = new WebSocketServer({ port : WSS_PORT, });
+console.debug(`Created WebSocketServer on port ${WSS_PORT}.`);
+
+wss.on('connection', async (ws) =>
+{
+    console.debug(`WebSocket connection established!`);
+
+    ws.on('error', (err) =>
+    {
+        console.error('WebSocketServer error : ', err);
+    });
+
+    ws.on('message', (data) =>
+    {
+        console.debug('WebSocketServer received some data...', data);
+    });
+
+    ws.on('close', (code, reason) =>
+    {
+        console.debug(`WebSocket connection closed.`);
+    });
+
+
+    // send all already existing messages
+
+    const messages = await getDBMessages();
+
+    for (const m of messages)
+    {
+        ws.send(JSON.stringify({
+            type : 'message',
+            content : m,
+        } as WSSendData));
+    }
+});
 
 
 
@@ -87,6 +124,9 @@ app.get('/api/messages', async (req, res) =>
 });
 
 
+// set responses headers
+app.use(cors())
+
 // middleware to parse req.body as JSON
 app.use(express.json());
 
@@ -94,33 +134,27 @@ app.post('/api/messages', async (req, res) =>
 {
     console.debug('Received new POST request. Processing...');
 
-    /**
-     * `req.body` has `content` property (see {@link POSTReqBody}) which
-     * consist (or, at least, should) of stringified {@link Message}
-     * object.
-     */
-    const body = req.body as POSTReqBody;
-    const message: {
-        readonly s: string;
-        parsed: null | Message;
-    } = {
-        s : body.content,
-        parsed : null,
-    };
+    // let body_parsed: null | POSTReqBody = null;
 
+    // try
+    // {
+    //     body_parsed = JSON.parse(req.body) as POSTReqBody;
 
-    try
+    //     if (typeof body_parsed.content.id !== 'number')
+    //     {
+    //         throw new TypeError();
+    //     }
+    // }
+    // catch (err)
+    // {
+    //     console.error('Failed to parse request body : ', err);
+    //     console.debug('req.body : ', req.body);
+    //     return;
+    // }
+
+    if (!Object.hasOwn(req.body, 'content'))
     {
-        message.parsed = JSON.parse(message.s) as Message;
-
-        if (typeof message.parsed.id !== 'number')
-        {
-            throw new TypeError();
-        }
-    }
-    catch (err)
-    {
-        console.error('Failed to parse request body : ', err);
+        console.error('Request body does not have "content" property.');
         return;
     }
 
@@ -142,7 +176,7 @@ app.post('/api/messages', async (req, res) =>
     //     }
     // }
 
-    await RedisClient.rPush('messages', message.s);
+    await RedisClient.rPush('messages', JSON.stringify(req.body.content));
 
 
     // sending new message via ws
@@ -153,7 +187,7 @@ app.post('/api/messages', async (req, res) =>
         {
             const data: WSSendData = {
                 type : 'message',
-                content : message.parsed,
+                content : req.body.content,
             };
 
             ws.send(JSON.stringify(data));

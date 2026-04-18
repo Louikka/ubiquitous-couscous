@@ -5,7 +5,8 @@ interface Message {
 }
 
 interface POSTReqBody {
-    content: string;
+    /** Sent message. */
+    content: Message;
 }
 
 interface WSSendData {
