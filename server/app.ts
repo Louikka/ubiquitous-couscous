@@ -1,12 +1,28 @@
+import os from 'node:os';
+import path from 'node:path';
 import express from 'express';
 import redis from 'redis';
-import cors from 'cors';
-
 import { WebSocketServer } from 'ws';
 
 
-const SERVER_PORT = 8081;
+const SERVER_PORT = 3000;
 const WSS_PORT = 8080;
+
+
+const localIP = Object.values(os.networkInterfaces())
+    .flat()
+    .find(iface => iface !== undefined && iface.family === 'IPv4' && !iface.internal)
+    ?.address
+;
+
+if (localIP !== undefined)
+{
+    console.debug(`local IP address found as ${localIP}`);
+}
+else
+{
+    console.error('Cannot find local IP address.');
+}
 
 
 
@@ -47,8 +63,8 @@ const getDBMessages = async () =>
 
 /* Initialize WebSocket ******************************************************/
 
-const wss = new WebSocketServer({ port : WSS_PORT, });
-console.debug(`Created WebSocketServer.`);
+const wss = new WebSocketServer({ port : WSS_PORT, host : localIP, });
+console.debug(`Created WebSocketServer on port :${WSS_PORT}.`);
 
 wss.on('connection', async (ws) =>
 {
@@ -61,7 +77,7 @@ wss.on('connection', async (ws) =>
 
     ws.on('message', (data) =>
     {
-        console.debug('WebSocketServer received some data...', data);
+        //console.debug('WebSocketServer received some data...');
     });
 
     ws.on('close', (code, reason) =>
@@ -89,6 +105,12 @@ wss.on('connection', async (ws) =>
 
 const app = express();
 
+
+// serving `../frontend_simplified` on `/test`
+app.use('/test', express.static(path.join(import.meta.dirname, '../frontend_simplified/dist')));
+app.use('/assets', express.static(path.join(import.meta.dirname, '../frontend_simplified/dist/assets')));
+
+
 app.get('/', (req, res) =>
 {
     res.send(`
@@ -104,7 +126,7 @@ app.get('/api/messages', async (req, res) =>
     res.send(messages);
 
 
-    /* Uncomment next code if procession of the recieved data is needed. */
+    /* Uncomment next code if procession of the recieved data from db is needed. */
 
     // const data: Message[] = [];
 
@@ -124,33 +146,12 @@ app.get('/api/messages', async (req, res) =>
 });
 
 
-// set responses headers
-app.use(cors())
-
 // middleware to parse req.body as JSON
 app.use(express.json());
 
 app.post('/api/messages', async (req, res) =>
 {
     console.debug('Received new POST request. Processing...');
-
-    // let body_parsed: null | POSTReqBody = null;
-
-    // try
-    // {
-    //     body_parsed = JSON.parse(req.body) as POSTReqBody;
-
-    //     if (typeof body_parsed.content.id !== 'number')
-    //     {
-    //         throw new TypeError();
-    //     }
-    // }
-    // catch (err)
-    // {
-    //     console.error('Failed to parse request body : ', err);
-    //     console.debug('req.body : ', req.body);
-    //     return;
-    // }
 
     if (!Object.hasOwn(req.body, 'content'))
     {
@@ -198,7 +199,7 @@ app.post('/api/messages', async (req, res) =>
 });
 
 
-app.listen(SERVER_PORT, () =>
+app.listen(SERVER_PORT, localIP ?? '127.0.0.1', () =>
 {
-    console.log(`Server listening on port http://localhost:${SERVER_PORT}/`);
+    console.log(`Server listening on port :${SERVER_PORT}/`);
 });

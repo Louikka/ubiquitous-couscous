@@ -48,7 +48,7 @@ window.addEventListener('beforeunload', () =>
         return;
     }
 
-    fetch('http://localhost:8081/api/messages', {
+    fetch(`http://${window.location.host}/api/messages`, {
         method : 'POST',
         headers : {
             'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ if (!window['WebSocket'])
 }
 
 
-const ws = new WebSocket('ws://localhost:8080');
+const ws = new WebSocket(`ws://${window.location.hostname}:8080`);
 
 ws.addEventListener('close', () =>
 {
