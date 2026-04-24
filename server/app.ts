@@ -9,20 +9,22 @@ const SERVER_PORT = 3000;
 const WSS_PORT = 8080;
 
 
-const localIP = Object.values(os.networkInterfaces())
-    .flat()
-    .find(iface => iface !== undefined && iface.family === 'IPv4' && !iface.internal)
-    ?.address
-;
+// const localIP = Object.values(os.networkInterfaces())
+//     .flat()
+//     .find(iface => iface !== undefined && iface.family === 'IPv4' && !iface.internal)
+//     ?.address
+// ;
 
-if (localIP !== undefined)
-{
-    console.debug(`local IP address found as ${localIP}`);
-}
-else
-{
-    console.error('Cannot find local IP address.');
-}
+// if (localIP !== undefined)
+// {
+//     console.debug(`local IP address found as ${localIP}`);
+// }
+// else
+// {
+//     console.error('Cannot find local IP address.');
+//     console.log('defaulting to localhost...');
+//     localIP = '127.0.0.1';
+// }
 
 
 
@@ -63,7 +65,7 @@ const getDBMessages = async () =>
 
 /* Initialize WebSocket ******************************************************/
 
-const wss = new WebSocketServer({ port : WSS_PORT, host : localIP, });
+const wss = new WebSocketServer({ port : WSS_PORT, });
 console.debug(`Created WebSocketServer on port :${WSS_PORT}.`);
 
 wss.on('connection', async (ws) =>
@@ -106,9 +108,8 @@ wss.on('connection', async (ws) =>
 const app = express();
 
 
-// serving `../frontend_simplified` on `/test`
-app.use('/test', express.static(path.join(import.meta.dirname, '../frontend_simplified/dist')));
-app.use('/assets', express.static(path.join(import.meta.dirname, '../frontend_simplified/dist/assets')));
+// serving `../frontend_simplified` on `/simple`
+app.use('/simple', express.static(path.join(import.meta.dirname, '../frontend_simplified/dist')));
 
 
 app.get('/', (req, res) =>
@@ -199,7 +200,7 @@ app.post('/api/messages', async (req, res) =>
 });
 
 
-app.listen(SERVER_PORT, localIP ?? '127.0.0.1', () =>
+app.listen(SERVER_PORT, () =>
 {
-    console.log(`Server listening on port :${SERVER_PORT}/`);
+    console.log(`Server up and running on http://localhost:${SERVER_PORT}/`);
 });

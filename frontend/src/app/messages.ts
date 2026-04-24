@@ -1,14 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, concat, map, Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 
-
-export interface AppChatMessage {
-    id: number;
-    origin: 'left' | 'right';
-    text: string;
-}
 
 @Injectable({
     providedIn : 'root',
@@ -17,32 +11,32 @@ export class Messages
 {
     constructor()
     {
-        this.remoteMessagesSubject.subscribe((val) =>
+        this.ws$.subscribe((val) =>
         {
-            const newMsg = JSON.parse(val) as AppChatMessage;
-            const existingMsgs = this.localMessagesSubject.getValue();
-            this.localMessagesSubject.next([ ...existingMsgs, newMsg, ]);
+            const d = JSON.parse(val) as WSSendData;
+            const existingMsgs = this.localMessages$.getValue();
+            this.localMessages$.next([ ...existingMsgs, d.content, ]);
         });
     }
 
 
     private http = inject(HttpClient);
-    private remoteMessagesSubject = webSocket<string>('ws://localhost:8080');
-    private localMessagesSubject = new BehaviorSubject<AppChatMessage[]>([]);
+    private ws$ = webSocket<string>('ws://localhost:8080');
+    private localMessages$ = new BehaviorSubject<AppChatMessage[]>([]);
 
     public getData(): Observable<AppChatMessage[]>
     {
         this.http.get<AppChatMessage[]>('/api/messages').subscribe((val) =>
         {
-            this.localMessagesSubject.next(val);
+            this.localMessages$.next(val);
         });
 
-        return this.localMessagesSubject.asObservable();
+        return this.localMessages$.asObservable();
     }
 
-    public sendMessage(message: string): Observable<boolean>
+    public sendMessage(s: string): Observable<boolean>
     {
-        return this.http.post('/api/messages', message).pipe(
+        return this.http.post('/api/messages', s).pipe(
             catchError((err) =>
             {
                 console.error(err);

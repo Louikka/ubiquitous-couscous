@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 
-import { AppChatMessage, Messages } from '../messages';
+import { Messages } from '../messages';
 
 import { ChatEnter } from '../chat-enter/chat-enter';
 import { ChatHeader } from '../chat-header/chat-header';
