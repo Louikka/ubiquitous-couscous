@@ -1,6 +1,5 @@
 {
-  "/": {
-    "target": "http://localhost:3000/",
-    "secure": false
+  "/abc": {
+    "target": "http://localhost:3000/"
   }
 }
