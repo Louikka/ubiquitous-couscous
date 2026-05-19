@@ -1,5 +1,6 @@
 import os from 'node:os';
 import path from 'node:path';
+
 import express from 'express';
 import redis from 'redis';
 import { WebSocketServer } from 'ws';
@@ -14,7 +15,7 @@ const WSS_PORT = 8080;
 //     .find(iface => iface !== undefined && iface.family === 'IPv4' && !iface.internal)
 //     ?.address
 // ;
-
+//
 // if (localIP !== undefined)
 // {
 //     console.debug(`local IP address found as ${localIP}`);
@@ -30,18 +31,18 @@ const WSS_PORT = 8080;
 
 /* Connect Redis *************************************************************/
 
-const RedisClient = redis.createClient(/*{ url : 'redis://localhost:39676', }*/);
-RedisClient.on('error', (err) =>
+const redisClient = redis.createClient(/*{ url : 'redis://localhost:39676', }*/);
+redisClient.on('error', (err) =>
 {
     console.error('Redis client error : ', err);
 });
 
-await RedisClient.connect();
+await redisClient.connect();
 
 const getDBMessages = async () =>
 {
     // get list of all message objects (stringified)
-    const data = await RedisClient.lRange('messages', 0, -1);
+    const data = await redisClient.lRange('messages', 0, -1);
 
     const messages: Message[] = [];
 
@@ -61,6 +62,11 @@ const getDBMessages = async () =>
     return messages;
 };
 
+const addDBMessage = async (message: Message) =>
+{
+    await redisClient.rPush('messages', JSON.stringify(message));
+};
+
 
 
 /* Initialize WebSocket ******************************************************/
@@ -70,7 +76,7 @@ console.debug(`Created WebSocketServer on port :${WSS_PORT}.`);
 
 wss.on('connection', async (ws) =>
 {
-    console.debug(`WebSocket connection established!`);
+    console.debug(`WebSocket connection established at ${ws.url}!`);
 
     ws.on('error', (err) =>
     {
@@ -84,19 +90,16 @@ wss.on('connection', async (ws) =>
 
     ws.on('close', (code, reason) =>
     {
-        console.debug(`WebSocket connection closed.`);
+        console.debug(`WebSocket connection closed (${code}).`);
     });
 
 
     // send all already existing messages
-
-    const messages = await getDBMessages();
-
-    for (const m of messages)
+    for (const message of await getDBMessages())
     {
         ws.send(JSON.stringify({
             type : 'message',
-            content : m,
+            content : message,
         } as WSSendData));
     }
 });
@@ -109,7 +112,7 @@ const app = express();
 
 
 // serving `../frontend_simplified` on `/simple`
-app.use('/simple', express.static(path.join(import.meta.dirname, '../frontend_simplified/dist')));
+//app.use('/simple', express.static(path.join(import.meta.dirname, '../frontend_simplified/dist')));
 
 
 app.get('/', (req, res) =>
@@ -122,27 +125,31 @@ app.get('/', (req, res) =>
 app.get('/api/messages', async (req, res) =>
 {
     // get list of all message objects
-    const messages = await RedisClient.lRange('messages', 0, -1);
+    const messages = await getDBMessages();
 
-    res.send(messages);
+    res.send(JSON.stringify(messages));
 
 
     /* Uncomment next code if procession of the recieved data from db is needed. */
 
     // const data: Message[] = [];
-
+    //
     // for (let i = 0; i < messages.length; i++)
     // {
     //     try
     //     {
-    //         data.push( JSON.parse(messages[i]) );
+    //         const message = JSON.parse(messages[i]);
+    //
+    //         // do some stuff...
+    //
+    //         data.push(message);
     //     }
     //     catch (err)
     //     {
     //         console.error('An error occured while trying to parse messages from server : ', err);
     //     }
     // }
-
+    //
     // res.send(JSON.stringify(data));
 });
 
@@ -154,9 +161,12 @@ app.post('/api/messages', async (req, res) =>
 {
     console.debug('Received new POST request. Processing...');
 
-    if (!Object.hasOwn(req.body, 'content'))
+    const sendedMessage = req.body as Message;
+
+    if (!Object.hasOwn(sendedMessage, 'id'))
     {
-        console.error('Request body does not have "content" property.');
+        console.error('Unable to read request\'s body.');
+        // TODO : send response with error?
         return;
     }
 
@@ -166,8 +176,8 @@ app.post('/api/messages', async (req, res) =>
 
     // adding new entry to the database
 
-    // const DBMessages = await RedisClient.lRange('messages', 0, -1);
-
+    // const DBMessages = await redisClient.lRange('messages', 0, -1);
+    //
     // for (const s of DBMessages)
     // {
     //     const m = JSON.parse(s) as Message;
@@ -178,7 +188,7 @@ app.post('/api/messages', async (req, res) =>
     //     }
     // }
 
-    await RedisClient.rPush('messages', JSON.stringify(req.body.content));
+    addDBMessage(sendedMessage);
 
 
     // sending new message via ws
@@ -189,7 +199,7 @@ app.post('/api/messages', async (req, res) =>
         {
             const data: WSSendData = {
                 type : 'message',
-                content : req.body.content,
+                content : sendedMessage,
             };
 
             ws.send(JSON.stringify(data));
