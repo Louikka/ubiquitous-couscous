@@ -76,7 +76,7 @@ console.debug(`Created WebSocketServer on port :${WSS_PORT}.`);
 
 wss.on('connection', async (ws) =>
 {
-    console.debug(`WebSocket connection established at ${ws.url}!`);
+    console.debug(`WebSocket connection established.`);
 
     ws.on('error', (err) =>
     {
@@ -98,8 +98,8 @@ wss.on('connection', async (ws) =>
     for (const message of await getDBMessages())
     {
         ws.send(JSON.stringify({
-            type : 'message',
-            content : message,
+            type: 'message',
+            content: message,
         } as WSSendData));
     }
 });
@@ -119,6 +119,20 @@ app.get('/', (req, res) =>
 {
     res.send(`
         <p>Hello, world!</p>
+        <button onclick="
+            console.debug('Sending test message...');
+            fetch('http://localhost:${SERVER_PORT}/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    timestamp: Date.now(),
+                    user: 'TestUser',
+                    text: 'test text',
+                }),
+            });
+        ">Send test message</button>
     `);
 });
 
@@ -128,29 +142,6 @@ app.get('/api/messages', async (req, res) =>
     const messages = await getDBMessages();
 
     res.send(JSON.stringify(messages));
-
-
-    /* Uncomment next code if procession of the recieved data from db is needed. */
-
-    // const data: Message[] = [];
-    //
-    // for (let i = 0; i < messages.length; i++)
-    // {
-    //     try
-    //     {
-    //         const message = JSON.parse(messages[i]);
-    //
-    //         // do some stuff...
-    //
-    //         data.push(message);
-    //     }
-    //     catch (err)
-    //     {
-    //         console.error('An error occured while trying to parse messages from server : ', err);
-    //     }
-    // }
-    //
-    // res.send(JSON.stringify(data));
 });
 
 
@@ -163,7 +154,7 @@ app.post('/api/messages', async (req, res) =>
 
     const sendedMessage = req.body as Message;
 
-    if (!Object.hasOwn(sendedMessage, 'id'))
+    if (false)
     {
         console.error('Unable to read request\'s body.');
         // TODO : send response with error?
@@ -197,12 +188,10 @@ app.post('/api/messages', async (req, res) =>
     {
         if (ws.readyState === ws.OPEN)
         {
-            const data: WSSendData = {
-                type : 'message',
-                content : sendedMessage,
-            };
-
-            ws.send(JSON.stringify(data));
+            ws.send(JSON.stringify({
+                type: 'message',
+                content: sendedMessage,
+            } as WSSendData));
         }
     }
 
