@@ -1,5 +1,5 @@
 {
-  "/abc": {
-    "target": "http://localhost:3000/"
+  "/api/messages": {
+    "target": "http://localhost:3000/api/messages"
   }
 }

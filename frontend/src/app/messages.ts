@@ -1,42 +1,41 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, ReplaySubject } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
+
+import * as ServerAPITypings from '../types/server_api_typings';
 
 
 @Injectable({
-    providedIn : 'root',
+    providedIn: 'root',
 })
 export class Messages
 {
     constructor()
     {
-        this.ws$.subscribe((val) =>
+        this.ws$.subscribe((d) =>
         {
-            const d = JSON.parse(val) as WSSendData;
-            const existingMsgs = this.localMessages$.getValue();
-            this.localMessages$.next([ ...existingMsgs, d.content, ]);
+            this.messages$.next(d.content);
         });
     }
 
 
     private http = inject(HttpClient);
-    private ws$ = webSocket<string>('ws://localhost:8080');
-    private localMessages$ = new BehaviorSubject<AppChatMessage[]>([]);
+    private ws$ = webSocket<ServerAPITypings.WSSendData>('ws://localhost:8080');
 
-    public getData(): Observable<AppChatMessage[]>
+    public readonly messages$ = new ReplaySubject<ServerAPITypings.Message>();
+
+
+    public getMessages(): Observable<ServerAPITypings.Message[]>
     {
-        this.http.get<AppChatMessage[]>('/api/messages').subscribe((val) =>
-        {
-            this.localMessages$.next(val);
-        });
-
-        return this.localMessages$.asObservable();
+        return this.http.get<ServerAPITypings.Message[]>('/api/messages');
     }
 
-    public sendMessage(s: string): Observable<boolean>
+    public sendMessage(message: ServerAPITypings.Message): Observable<boolean>
     {
-        return this.http.post('/api/messages', s).pipe(
+        console.debug('Sending message...');
+
+        return this.http.post('/api/messages', JSON.stringify(message)).pipe(
             catchError((err) =>
             {
                 console.error(err);
@@ -44,8 +43,9 @@ export class Messages
             }),
             map(() =>
             {
+                console.debug('Message sent successfully.');
                 return true;
-            })
+            }),
         )
     }
 }

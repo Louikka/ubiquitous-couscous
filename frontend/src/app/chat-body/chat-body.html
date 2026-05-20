@@ -1,0 +1,26 @@
+<div class="w-full h-full bg-(--app-bg-color)">
+    <div class="w-full h-full flex flex-col">
+        <!-- display -->
+        <div class="h-full">
+            @for (d of displayContent; track d)
+            {
+                @if (d.type === 'message')
+                {
+                    <div class="log-message">{{ d.content.text }}</div>
+                }
+                @else if (d.type === 'error')
+                {
+                    <div class="log-error">{{ d.content.text }}</div>
+                }
+            }
+        </div>
+
+        <!-- input -->
+        <div class="p-4">
+            <form class="flex" (ngSubmit)="onSubmit()" novalidate  pattern=".*\S+.*">
+                <input #formInputText class="w-full" type="text" />
+                <input type="submit" value="Send" />
+            </form>
+        </div>
+    </div>
+</div>
