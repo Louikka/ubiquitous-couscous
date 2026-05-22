@@ -30,11 +30,12 @@
     --color-white : #fff;
 
 
-    --app-sub-bg-color : #e5e5f7;
-    --app-sub-accent-color : #444cf7;
-
-    --app-bg-color : oklch(97% 0 0);
+    --app-bg-color : var(--color-neutral-100);
     --app-fg-color : oklch(14.5% 0 0);
+    --app-accent-color : #444cf7;
+
+    --app-sub-bg-color : #e5e5f7;
+    --app-sub-accent-color : var(--app-accent-color);
 
     --app-font-color : oklch(14.5% 0 0);
 }
@@ -83,7 +84,9 @@ body[data-theme="dark"] {
 
 .scrollable {
     overflow : auto;
-    scrollbar-width : none;
+    scrollbar-width : thin;
+    scrollbar-color : var(--app-sub-bg-color) transparent;
+    scrollbar-gutter : stable;
     overscroll-behavior : contain;
 
     min-height : 0;
@@ -118,4 +121,9 @@ body[data-theme="dark"] {
         ) -1px 0
     ;
     background-size : 50px 50px, 50px 50px, 25px 25px, 25px 25px;
+}
+
+.app-button {
+    background-color : var(--app-sub-accent-color);
+    color : var(--color-neutral-100);
 }

@@ -1,32 +1,16 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
+import { AsyncPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
 
 import { Messages } from '../messages';
 
 import * as ServerAPITypings from '../../types/server_api_typings';
 
 
-type DisplayableContentMessage = {
-    type: 'message';
-    content: ServerAPITypings.Message;
-}
-type DisplayableContentError = {
-    type: 'error';
-    content: {
-        timestamp: number;
-        text: string;
-    };
-}
-
-type DisplayableContent = (
-    | DisplayableContentMessage
-    | DisplayableContentError
-);
-
-
 @Component({
   selector: 'app-chat-body',
-  imports: [ FormsModule, ],
+  imports: [ AsyncPipe, FormsModule, ],
   templateUrl: './chat-body.html',
   styleUrl: './chat-body.css',
 })
@@ -34,13 +18,13 @@ export class ChatBody
 {
     constructor()
     {
-        this.messagesService.messages$.subscribe((value) =>
+        this.messagesService.messages$.subscribe((val) =>
         {
-            this.displayContent.push({
-                type: 'message',
-                content: value,
-            });
+            this._messagesState.push(val);
+            this.messages$.next(this._messagesState);
         });
+
+        this.messagesService.sendClientTestError();
     }
 
 
@@ -50,23 +34,22 @@ export class ChatBody
 
     private readonly messagesService = inject(Messages);
 
-    /** Currently displayed messages. */
-    public displayContent: DisplayableContent[] = [];
+    private _messagesState = [] as ServerAPITypings.ChatMessage[];
+    public messages$ = new Subject<ServerAPITypings.ChatMessage[]>();
 
 
     public onSubmit()
     {
-        // FIXME : message got sent, but server not recieving it. why.
-
-        if (this.formInputText !== null)
+        if (this.formInputText !== null) // TODO : validate input
         {
             const input = this.formInputText.nativeElement;
 
-            this.messagesService.sendMessage({
-                timestamp: Date.now(),
-                user: 'This User',
-                text: input.value.trim(),
-            });
+            this.messagesService.sendMessage(
+                this.messagesService.newTextMessage(
+                    'This User',
+                    input.value.trim(),
+                )
+            );
 
             input.value = '';
         }

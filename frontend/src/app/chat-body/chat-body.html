@@ -1,25 +1,25 @@
 <div class="w-full h-full bg-(--app-bg-color)">
-    <div class="w-full h-full flex flex-col">
+    <div class="w-full h-full p-4 flex flex-col gap-2">
         <!-- display -->
-        <div class="h-full">
-            @for (d of displayContent; track d)
+        <div class="scrollable  h-full">
+            @for (message of messages$ | async; track message)
             {
-                @if (d.type === 'message')
+                @if (message.type === 'message')
                 {
-                    <div class="log-message">{{ d.content.text }}</div>
+                    <div class="log-message">{{ message.content.user }}: {{ message.content.text }}</div>
                 }
-                @else if (d.type === 'error')
+                @else if (message.type === 'error')
                 {
-                    <div class="log-error">{{ d.content.text }}</div>
+                    <div class="log-error font-mono">{{ message.content.text }}</div>
                 }
             }
         </div>
 
         <!-- input -->
-        <div class="p-4">
-            <form class="flex" (ngSubmit)="onSubmit()" novalidate  pattern=".*\S+.*">
-                <input #formInputText class="w-full" type="text" />
-                <input type="submit" value="Send" />
+        <div class="p-2 bg-(--app-sub-bg-color) rounded-sm">
+            <form class="flex gap-2 items-center-safe" (ngSubmit)="onSubmit()" novalidate pattern=".*\S+.*">
+                <input #formInputText class="w-full p-2 text-lg" type="text" />
+                <input class="app-button  p-2 px-4 rounded-sm text-lg" type="submit" value="Send" />
             </form>
         </div>
     </div>
