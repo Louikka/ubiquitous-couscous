@@ -5,6 +5,8 @@ import express from 'express';
 import redis from 'redis';
 import { WebSocketServer } from 'ws';
 
+import type * as APITypings from './types/api.d.ts';
+
 
 const SERVER_PORT = 3000;
 const WSS_PORT = 8080;
@@ -42,9 +44,9 @@ await redisClient.connect();
 const getDBMessages = async () =>
 {
     // get list of all message objects (stringified)
-    const data = await redisClient.lRange('messages', 0, -1);
+    const data = await redisClient.lRange('USER_MESSAGES', 0, -1);
 
-    const messages: Message[] = [];
+    const messages: APITypings.Message[] = [];
 
     for (const d of data)
     {
@@ -62,16 +64,16 @@ const getDBMessages = async () =>
     return messages;
 };
 
-const addDBMessage = async (message: Message) =>
+const addDBMessage = async (message: APITypings.Message) =>
 {
-    await redisClient.rPush('messages', JSON.stringify(message));
+    await redisClient.rPush('USER_MESSAGES', JSON.stringify(message));
 };
 
 
 
 /* Initialize WebSocket ******************************************************/
 
-const wss = new WebSocketServer({ port : WSS_PORT, });
+const wss = new WebSocketServer({ port: WSS_PORT, });
 console.debug(`Created WebSocketServer on port :${WSS_PORT}.`);
 
 wss.on('connection', async (ws) =>
@@ -97,10 +99,7 @@ wss.on('connection', async (ws) =>
     // send all already existing messages
     for (const message of await getDBMessages())
     {
-        ws.send(JSON.stringify({
-            type: 'message',
-            content: message,
-        } as WSSendData));
+        ws.send(JSON.stringify(message));
     }
 });
 
@@ -152,11 +151,11 @@ app.post('/api/messages', async (req, res) =>
 {
     console.debug('Received new POST request. Processing...');
 
-    const sendedMessage = req.body as Message;
+    const sendedMessage = req.body as APITypings.ChatMessage;
 
-    if (false)
+    if (sendedMessage.type !== 'message')
     {
-        console.error('Unable to read request\'s body.');
+        console.error(`Sended message of type "${sendedMessage.type}"; expected "message".`);
         // TODO : send response with error?
         return;
     }
@@ -188,10 +187,7 @@ app.post('/api/messages', async (req, res) =>
     {
         if (ws.readyState === ws.OPEN)
         {
-            ws.send(JSON.stringify({
-                type: 'message',
-                content: sendedMessage,
-            } as WSSendData));
+            ws.send(JSON.stringify(sendedMessage));
         }
     }
 
