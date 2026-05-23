@@ -40,14 +40,17 @@ export class ChatBody
 
     public onSubmit()
     {
-        if (this.formInputText !== null) // TODO : validate input
+        if (this.formInputText !== null)
         {
             const input = this.formInputText.nativeElement;
+
+            let inputValue = input.value.trim();
+            if (inputValue.length <= 0) return;
 
             this.messagesService.sendMessage(
                 this.messagesService.newTextMessage(
                     'This User',
-                    input.value.trim(),
+                    inputValue,
                 )
             );
 
