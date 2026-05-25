@@ -4,12 +4,18 @@ import path from 'node:path';
 import express from 'express';
 import redis from 'redis';
 import { WebSocketServer } from 'ws';
+import { expressjwt } from 'express-jwt';
 
 import type * as APITypings from './types/api.d.ts';
 
 
 const SERVER_PORT = 3000;
 const WSS_PORT = 8080;
+
+const jwtMiddleware = expressjwt({ 
+    secret: 'shhhhhhared-secret', 
+    algorithms: [ 'HS256', ], 
+});
 
 
 // const localIP = Object.values(os.networkInterfaces())
@@ -97,10 +103,10 @@ wss.on('connection', async (ws) =>
 
 
     // send all already existing messages
-    for (const message of await getDBMessages())
-    {
-        ws.send(JSON.stringify(message));
-    }
+    // for (const message of await getDBMessages())
+    // {
+    //     ws.send(JSON.stringify(message));
+    // }
 });
 
 
@@ -135,8 +141,10 @@ app.get('/', (req, res) =>
     `);
 });
 
-app.get('/api/messages', async (req, res) =>
+app.get('/api/messages', jwtMiddleware, async (req, res) =>
 {
+    console.log(req);
+
     // get list of all message objects
     const messages = await getDBMessages();
 

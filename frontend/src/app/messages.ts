@@ -13,6 +13,14 @@ export class Messages
 {
     constructor()
     {
+        this.getMessages().subscribe((val) =>
+        {
+            for (const m of val)
+            {
+                this.messages$.next(m);
+            }
+        });
+
         this.ws$.subscribe((val) =>
         {
             this.messages$.next(val);
