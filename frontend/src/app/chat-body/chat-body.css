@@ -1,0 +1,10 @@
+.log-message {
+    padding : calc(var(--spacing) * 2);
+}
+
+.log-error {
+    padding : calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+
+    background-color : var(--app-sub-bg-color);
+    border-left : calc(var(--spacing) * 1) solid red;
+}

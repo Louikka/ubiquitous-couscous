@@ -1,57 +1,93 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, concat, map, Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 
+import * as ServerAPITypings from '../types/server_api_typings';
 
-export interface AppChatMessage {
-    id: number;
-    origin: 'left' | 'right';
-    text: string;
-}
 
 @Injectable({
-    providedIn : 'root',
+    providedIn: 'root',
 })
 export class Messages
 {
     constructor()
     {
-        this.remoteMessagesSubject.subscribe((val) =>
+        this.ws$.subscribe((val) =>
         {
-            const newMsg = JSON.parse(val) as AppChatMessage;
-            const existingMsgs = this.localMessagesSubject.getValue();
-            this.localMessagesSubject.next([ ...existingMsgs, newMsg, ]);
+            this.messages$.next(val);
         });
     }
 
 
     private http = inject(HttpClient);
-    private remoteMessagesSubject = webSocket<string>('ws://localhost:8080');
-    private localMessagesSubject = new BehaviorSubject<AppChatMessage[]>([]);
+    private ws$ = webSocket<ServerAPITypings.ChatMessage>('ws://localhost:8080');
 
-    public getData(): Observable<AppChatMessage[]>
+    public readonly messages$ = new ReplaySubject<ServerAPITypings.ChatMessage>();
+
+
+    /** Constructor for new text message. */
+    public newTextMessage(username: string, text: string, timestamp = Date.now()): ServerAPITypings.Message
     {
-        this.http.get<AppChatMessage[]>('/api/messages').subscribe((val) =>
-        {
-            this.localMessagesSubject.next(val);
-        });
-
-        return this.localMessagesSubject.asObservable();
+        return {
+            type: 'message',
+            timestamp,
+            content: {
+                user: username,
+                text,
+            },
+        };
+    }
+    /** Constructor for new error message. */
+    public newErrorMessage(text: string, timestamp = Date.now()): ServerAPITypings.Error
+    {
+        return {
+            type: 'error',
+            timestamp,
+            content: {
+                text,
+            },
+        };
     }
 
-    public sendMessage(message: string): Observable<boolean>
+
+    public getMessages(): Observable<ServerAPITypings.ChatMessage[]>
     {
-        return this.http.post('/api/messages', message).pipe(
-            catchError((err) =>
+        return this.http.get<ServerAPITypings.ChatMessage[]>('/api/messages');
+    }
+
+    public sendMessage(message: ServerAPITypings.Message): Observable<null | boolean>
+    {
+        console.debug('Sending message...');
+
+        let isSuccessful = new BehaviorSubject<null | boolean>(null);
+
+        const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
+        // http.post won't work unless subscribed ("cold" observable)
+        this.http.post('/api/messages', JSON.stringify(message), { headers, }).subscribe({
+            error: (err) =>
             {
                 console.error(err);
-                return of(false);
-            }),
-            map(() =>
+                isSuccessful.next(false);
+            },
+            complete: () =>
             {
-                return true;
-            })
-        )
+                isSuccessful.next(true);
+            },
+            next: (val) =>
+            {
+                console.log(val);
+                isSuccessful.next(true);
+            },
+        });
+
+        return isSuccessful;
+    }
+
+    public sendClientTestError()
+    {
+        this.messages$.next(
+            this.newErrorMessage('test error')
+        );
     }
 }

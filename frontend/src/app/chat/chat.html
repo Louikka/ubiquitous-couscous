@@ -1,26 +1,13 @@
-<!-- wrapper -->
-<div class="w-full max-w-lg h-full mx-auto p-[.5rem]">
-    <div class="relative w-full h-full p-[.5rem] flex flex-col bg-(--app-chat-background-color) rounded-md shadow-md">
-
-        <!-- chat header -->
-        <div class="tile-generic  p-[.5rem] rounded-md">
-            <app-chat-header />
-        </div>
-
-        <!-- chat body -->
-        <div class="scrollable  grow p-[.5rem] flex flex-col justify-end-safe gap-[.5rem]">
-            @for (m of messages | async; track m.id)
-            {
-                <div class="tile-generic chat-message-box origin-{{ m.origin }}">
-                    <app-chat-message message="{{ m.text }}" />
-                </div>
-            }
-        </div>
-
-        <!-- chat footer -->
-        <div class="tile-generic  p-[.5rem] rounded-md">
-            <app-chat-enter (evMessage)="sendMessage($event)" />
-        </div>
-
+<div class="bg-pattern  w-full h-full flex bg-(--app-sub-bg-color)">
+    <div class="max-w-70 w-1/5">
+        <app-chat-aside />
     </div>
+
+    <div class="max-w-10 w-full"></div>
+
+    <div class="max-w-7xl w-full">
+        <app-chat-body />
+    </div>
+
+    <div class="max-w-10 w-full"></div>
 </div>

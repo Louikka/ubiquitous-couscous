@@ -4,8 +4,16 @@
 
 
 @font-face {
-    font-family : 'Poppins';
-    src : url('./assets/fonts/Poppins-Regular.ttf');
+    font-family : 'Noto Serif';
+    src : url('./assets/fonts/Noto_Serif/NotoSerif-VariableFont_wdth\,wght.ttf');
+}
+@font-face {
+    font-family : 'Noto Sans';
+    src : url('./assets/fonts/Noto_Sans/NotoSans-VariableFont_wdth\,wght.ttf');
+}
+@font-face {
+    font-family : 'Noto Sans Mono';
+    src : url('./assets/fonts/Noto_Sans_Mono/NotoSansMono-VariableFont_wdth\,wght.ttf');
 }
 
 
@@ -20,6 +28,16 @@
     --color-palerose : #e5deed;
     --color-lightgrey : #e7e7e7;
     --color-white : #fff;
+
+
+    --app-bg-color : var(--color-neutral-100);
+    --app-fg-color : oklch(14.5% 0 0);
+    --app-accent-color : #444cf7;
+
+    --app-sub-bg-color : #e5e5f7;
+    --app-sub-accent-color : var(--app-accent-color);
+
+    --app-font-color : oklch(14.5% 0 0);
 }
 
 
@@ -30,64 +48,82 @@ html {
 body {
     height : 100%;
 
-    font-family : 'Poppins', sans-serif;
-    color : var(--app-font-main-color);
+    font-family : 'Noto Sans', sans-serif;
+    font-optical-sizing : auto;
+    font-style : normal;
+    font-variation-settings :
+        "wdth" 100
+    ;
+    color : var(--app-font-color);
 }
-/* App light color theme settings. */
 body[data-theme="light"] {
-    --app-main-background-color : var(--color-palerose);
-    --app-chat-background-color : var(--color-white);
-
-    --app-chat-tile-background-color : var(--color-lightgrey);
-    --app-chat-tile-border-color : var(--color-violet);
-
-    --app-font-main-color : var(--color-asphalt);
-    --app-font-sub-color : var(--color-violet);
+    /* This is default theme. */
 }
-/* App dark color theme settings. */
 body[data-theme="dark"] {
-    --app-main-background-color : rgb(29, 29, 29);
-    --app-chat-background-color : rgb(40, 40, 40);
-
-    --app-chat-tile-background-color : rgb(58, 58, 58);
-    --app-chat-tile-border-color : var(--app-chat-tile-background-color);
-
-    --app-font-main-color : Silver; /* LightGrey */
-    --app-font-sub-color : rgb(170, 137, 208);
+    --app-bg-color : oklch(20.5% 0 0);
 }
 
-* {
-    box-sizing : border-box;
+
+.font-serif {
+    font-family : 'Noto Serif', serif;
+}
+.font-sans {
+    font-family : 'Noto Sans', sans-serif;
+}
+.font-mono {
+    font-family : 'Noto Sans Mono', monospace;
 }
 
-input[type="button"]:not(:disabled),
-input[type="submit"]:not(:disabled),
-button:not(:disabled) {
+:is(
+    input[type="button"],
+    input[type="submit"],
+    button
+):not(:disabled) {
     cursor : pointer;
 }
 
-h1 {
-    margin : 0;
-    padding : .1rem;
-
-    font-weight : bold;
-    line-height : 1.6;
-    letter-spacing : 0;
-    color : var(--app-font-sub-color);
-}
-h1.dark {
-    padding : .1rem .25rem;
-
-    background-color : var(--app-font-main-color);
-
-    color : var(--color-white);
-}
-
-
 .scrollable {
     overflow : auto;
-    scrollbar-width : none;
+    scrollbar-width : thin;
+    scrollbar-color : var(--app-sub-bg-color) transparent;
+    scrollbar-gutter : stable;
     overscroll-behavior : contain;
 
     min-height : 0;
+}
+
+.bg-pattern {
+    background :
+        radial-gradient(
+            circle,
+            transparent 20%,
+            var(--app-sub-bg-color) 20%,
+            var(--app-sub-bg-color) 80%,
+            transparent 80%,
+            transparent
+        ),
+        radial-gradient(
+            circle,
+            transparent 20%,
+            var(--app-sub-bg-color) 20%,
+            var(--app-sub-bg-color) 80%,
+            transparent 80%,
+            transparent
+        ) 25px 25px,
+        linear-gradient(
+            var(--app-sub-accent-color) 2px,
+            transparent 2px
+        ) 0 -1px,
+        linear-gradient(
+            90deg,
+            var(--app-sub-accent-color) 2px,
+            var(--app-sub-bg-color) 2px
+        ) -1px 0
+    ;
+    background-size : 50px 50px, 50px 50px, 25px 25px, 25px 25px;
+}
+
+.app-button {
+    background-color : var(--app-sub-accent-color);
+    color : var(--color-neutral-100);
 }
