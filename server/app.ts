@@ -87,7 +87,7 @@ wss.on('connection', async (ws) =>
 
     ws.on('message', (data) =>
     {
-        //console.debug('WebSocketServer received some data...');
+        console.debug('WebSocketServer received some data...');
     });
 
     ws.on('close', (code, reason) =>

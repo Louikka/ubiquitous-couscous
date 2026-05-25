@@ -23,8 +23,6 @@ export class ChatBody
             this._messagesState.push(val);
             this.messages$.next(this._messagesState);
         });
-
-        this.messagesService.sendClientTestError();
     }
 
 

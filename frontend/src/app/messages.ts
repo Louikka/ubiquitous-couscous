@@ -21,7 +21,7 @@ export class Messages
 
 
     private http = inject(HttpClient);
-    private ws$ = webSocket<ServerAPITypings.ChatMessage>('ws://localhost:8080');
+    private ws$ = webSocket<ServerAPITypings.ChatMessage>(`ws://${window.location.hostname}:8080`);
 
     public readonly messages$ = new ReplaySubject<ServerAPITypings.ChatMessage>();
 
