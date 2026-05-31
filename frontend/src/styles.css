@@ -125,5 +125,12 @@ body[data-theme="dark"] {
 
 .app-button {
     background-color : var(--app-sub-accent-color);
+    border-radius : var(--radius-sm);
+
     color : var(--color-neutral-100);
+}
+
+.app-input {
+    background-color : var(--app-sub-bg-color);
+    border-radius : var(--radius-sm);
 }

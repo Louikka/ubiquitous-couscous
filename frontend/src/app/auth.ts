@@ -1,21 +1,23 @@
 import { Injectable } from '@angular/core';
 
+
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root',
 })
-export class Auth {
-  public logIn(username: string, password: string)
-  {
-    //
-  }
+export class Auth
+{
+    public logIn(username: string, password: string)
+    {
+        //
+    }
 
-  public logOut()
-  {
-    //
-  }
+    public logOut()
+    {
+        //
+    }
 
-  public isLoggedIn(): boolean
-  {
-    return true;
-  }
+    public isLoggedIn(): boolean
+    {
+        return false;
+    }
 }
