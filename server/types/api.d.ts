@@ -1,3 +1,17 @@
+export interface JWTToken {
+    username: string;
+    password: string;
+}
+
+
+export interface LoginResponseInterface {
+    token: string;
+    ok: boolean;
+    error_message?: string;
+}
+
+
+
 export type Message = {
     type: 'message';
     /** Timestamp (in ms) when the message was sent. */

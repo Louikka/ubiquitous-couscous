@@ -1,12 +1,12 @@
 <div class="bg-pattern  relative w-full h-full bg-(--app-sub-bg-color)">
-    <form class="absolute top-1/2 left-1/2 -translate-1/2 p-4 flex flex-col gap-2 bg-(--app-bg-color) rounded-sm">
+    <form class="absolute top-1/2 left-1/2 -translate-1/2 p-4 flex flex-col gap-2 bg-(--app-bg-color) rounded-sm" (submit)="onSubmit($event)">
 
         <div>
-            <input class="app-input  w-full px-2 py-1 text-lg" type="text" placeholder="Username" required />
+            <input #loginUsername class="app-input  w-full px-2 py-1 text-lg" type="text" placeholder="Username" required />
         </div>
 
         <div>
-            <input class="app-input  w-full px-2 py-1 text-lg" type="password" placeholder="Password" required />
+            <input #loginPassword class="app-input  w-full px-2 py-1 text-lg" type="password" placeholder="Password" required />
         </div>
 
         <div>
