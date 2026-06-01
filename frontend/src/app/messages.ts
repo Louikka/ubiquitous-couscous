@@ -77,6 +77,9 @@ export class Messages
             {
                 console.error(err);
                 isSuccessful.next(false);
+                this.messages$.next(
+                    this.newErrorMessage(err)
+                );
             },
             complete: () =>
             {
