@@ -1,4 +1,4 @@
-interface UserCredentials {
+interface DBUserCredentials {
     username: string;
     /** Encoded. */
     password: string;

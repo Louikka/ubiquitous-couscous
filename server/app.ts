@@ -44,13 +44,22 @@ function hashPassword(password: string)
     const hash = crypto.scryptSync(password, salt, 64).toString('hex');
 
     // Return both salt and hash for storage
-    return { hash, salt, };
+    return { hash, salt };
 }
 
+/**
+ * @param password password to verify.
+ * @param hash password to verify against.
+ */
 function verifyPassword(password: string, hash: string, salt: string)
 {
     const hashedPassword = crypto.scryptSync(password, salt, 64).toString('hex');
     return hashedPassword === hash;
+}
+
+function createHashFromUsername(s: string): string
+{
+    return crypto.hash('blake2b512', s, 'hex');
 }
 
 
@@ -65,39 +74,39 @@ redisClient.on('error', (err) =>
 
 await redisClient.connect();
 
-const getDBUsers = async () =>
+
+const getDBUser = async (username: string): Promise<DBUserCredentials | null> =>
 {
-    // get list of all user objects (stringified)
-    const data = await redisClient.lRange('USER_CREDENTIALS', 0, -1);
+    const _user = await redisClient.get(`USER_${createHashFromUsername(username)}`);
+    let user = null;
 
-    const users: UserCredentials[] = [];
-
-    for (const d of data)
+    try
     {
-        try
+        if (_user !== null)
         {
-            users.push( JSON.parse(d) );
-        }
-        catch (err)
-        {
-            console.error('An error occured while trying to parse users from server : ', err);
-            console.debug('Initial data that failed to parse : ', d);
+            user = JSON.parse(_user);
         }
     }
+    catch (err)
+    {
+        //
+    }
 
-    return users;
+    return user;
 };
 
-const getDBUser = async (username: string): Promise<UserCredentials | null> =>
+const addDBUser = async (username: string, password: string) =>
 {
-    const users = await getDBUsers();
+    const hashedPassword = hashPassword(password);
 
-    let user = users.find(v => v.username === username);
-
-    return user ?? null;
+    await redisClient.set(`USER_${createHashFromUsername(username)}`, JSON.stringify({
+        username,
+        password: hashedPassword.hash,
+        salt: hashedPassword.salt,
+    } as DBUserCredentials));
 };
 
-const getDBMessages = async () =>
+const getDBMessages = async (): Promise<APITypings.Message[]> =>
 {
     // get list of all message objects (stringified)
     const data = await redisClient.lRange('USER_MESSAGES', 0, -1);
@@ -206,50 +215,41 @@ app.get('/', (req, res) =>
 });
 
 
-// app.post('/register', async (req, res) =>
-// {
-//     const { username, password } = req.body;
+app.post('/api/register', async (req, res) =>
+{
+    const { username, password } = req.body;
 
-//     if (true)
-//     {
-//         return res.status(400).json({ message: 'User already exists', });
-//     }
+    if (await getDBUser(username) !== null)
+    {
+        res.status(401).end();
 
-//     await createUser(username, password);
-//     res.json({ message: 'User registered', });
-// });
+        return;
+    }
+
+    addDBUser(username, password);
+
+    res.json({
+        token: jwt.sign({ username, }, JWT_PRIVATE_KEY),
+    } as APITypings.RegisterResponseInterface);
+});
 
 
 app.post('/api/login', async (req, res) =>
 {
     const { username, password } = req.body;
 
-    const response: APITypings.LoginResponseInterface = {
-        token: '',
-        ok: false,
-    };
-
     const user = await getDBUser(username);
 
-    if (user === null)
+    if (user === null || !verifyPassword(password, user.password, user.salt))
     {
-        response.error_message = `User "${username}" does not exists.`;
-        res.json(response);
-        return;
-    }
-
-    if (!verifyPassword(password, user.password, user.salt))
-    {
-        response.error_message = `Invalid credentials (wrong password).`;
-        res.json(response);
+        res.status(401).end();
         return;
     }
 
 
-    response.ok = true;
-    response.token = jwt.sign({ username, }, JWT_PRIVATE_KEY);
-
-    res.json(response);
+    res.json({
+        token: jwt.sign({ username, }, JWT_PRIVATE_KEY),
+    } as APITypings.LoginResponseInterface);
 });
 
 

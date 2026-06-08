@@ -1,17 +1,24 @@
 <div class="bg-pattern  relative w-full h-full bg-(--app-sub-bg-color)">
+
     <form class="absolute top-1/2 left-1/2 -translate-1/2 p-4 flex flex-col gap-2 bg-(--app-bg-color) rounded-sm" (submit)="onSubmit($event)">
-
         <div>
-            <input #loginUsername class="app-input  w-full px-2 py-1 text-lg" type="text" placeholder="Username" required />
+            <input #loginUsername class="app-input  w-full px-2 py-1 text-lg" type="text" placeholder="Username" autocomplete="username" required />
+        </div>
+        <div>
+            <input #loginPassword class="app-input  w-full px-2 py-1 text-lg" type="password" placeholder="Password" autocomplete="current-password" required />
         </div>
 
-        <div>
-            <input #loginPassword class="app-input  w-full px-2 py-1 text-lg" type="password" placeholder="Password" required />
-        </div>
+        @if (errorMessage$ | async; as errorMessage)
+        {
+            <div class="text-sm text-red-500">{{ errorMessage }}</div>
+        }
 
         <div>
-            <input class="app-button  px-2 py-1 text-lg" type="submit" value="Submit" />
+            <input class="app-button  px-2 py-1 text-lg" type="submit" value="Log In" />
         </div>
-
+        <div class="text-sm">
+            Don't have an account yet? <a href="/register" class="app-link">Sign in</a>
+        </div>
     </form>
+
 </div>

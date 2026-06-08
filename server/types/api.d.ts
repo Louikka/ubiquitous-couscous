@@ -1,15 +1,17 @@
-export interface JWTToken {
+export interface UserCredentials {
     username: string;
     password: string;
 }
 
 
-export interface LoginResponseInterface {
+
+export interface RegisterResponseInterface {
     token: string;
-    ok: boolean;
-    error_message?: string;
 }
 
+export interface LoginResponseInterface {
+    token: string;
+}
 
 
 export type Message = {

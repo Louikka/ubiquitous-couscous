@@ -134,3 +134,8 @@ body[data-theme="dark"] {
     background-color : var(--app-sub-bg-color);
     border-radius : var(--radius-sm);
 }
+
+.app-link {
+    color : var(--app-sub-accent-color);
+    text-decoration : underline solid;
+}
