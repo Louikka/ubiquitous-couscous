@@ -15,10 +15,10 @@ export class Register
 {
     @ViewChild('registerUsername')
     private registerUsername: ElementRef<HTMLInputElement> | null = null;
-    @ViewChild('registerPassword1')
-    private registerPassword1: ElementRef<HTMLInputElement> | null = null;
-    @ViewChild('registerPassword2')
-    private registerPassword2: ElementRef<HTMLInputElement> | null = null;
+    @ViewChild('registerPassword')
+    private registerPassword: ElementRef<HTMLInputElement> | null = null;
+    @ViewChild('registerPasswordRepeat')
+    private registerPasswordRepeat: ElementRef<HTMLInputElement> | null = null;
 
 
     private readonly authService = inject(Auth);
@@ -33,8 +33,8 @@ export class Register
 
         const username = this.registerUsername?.nativeElement.value;
 
-        const password1 = this.registerPassword1?.nativeElement.value;
-        const password2 = this.registerPassword2?.nativeElement.value;
+        const password1 = this.registerPassword?.nativeElement.value;
+        const password2 = this.registerPasswordRepeat?.nativeElement.value;
 
         if (username === undefined || password1 === undefined || password2 === undefined)
         {

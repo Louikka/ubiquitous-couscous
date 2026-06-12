@@ -1,26 +1,24 @@
-<div class="w-full h-full bg-(--app-bg-color)">
-    <div class="w-full h-full p-4 flex flex-col gap-2">
-        <!-- display -->
-        <div class="scrollable  h-full">
-            @for (message of messages$ | async; track message)
+<div class="w-full h-full flex flex-col gap-4">
+    <!-- display -->
+    <div class="app-area scrollable  h-full py-4 px-1">
+        @for (message of messages$ | async; track message)
+        {
+            @if (message.type === 'message')
             {
-                @if (message.type === 'message')
-                {
-                    <div class="log-message">{{ message.content.user }}: {{ message.content.text }}</div>
-                }
-                @else if (message.type === 'error')
-                {
-                    <div class="log-error font-mono">{{ message.content.text }}</div>
-                }
+                <div class="log-message">{{ message.content.user }}: {{ message.content.text }}</div>
             }
-        </div>
+            @else if (message.type === 'error')
+            {
+                <div class="log-error font-mono">{{ message.content.text }}</div>
+            }
+        }
+    </div>
 
-        <!-- input -->
-        <div class="app-input  p-2">
-            <form class="flex gap-2 items-center-safe" (ngSubmit)="onSubmit()" novalidate pattern=".*\S+.*">
-                <input #formInputText class="w-full p-2 text-lg" type="text" />
-                <input class="app-button  p-2 px-4 text-lg" type="submit" value="Send" />
-            </form>
-        </div>
+    <!-- input -->
+    <div class="app-area  p-2">
+        <form class="flex gap-2 items-center-safe" (ngSubmit)="onSubmit()" novalidate pattern=".*\S+.*">
+            <input #formInputText class="app-input  w-full px-3 py-1 text-lg" type="text" />
+            <input class="app-button  px-3 py-1 text-lg" type="submit" value="Send" />
+        </form>
     </div>
 </div>
