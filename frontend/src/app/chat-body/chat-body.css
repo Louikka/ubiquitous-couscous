@@ -1,5 +1,5 @@
 .log-message {
-    padding : calc(var(--spacing) * 2);
+    padding : 1px calc(var(--spacing) * 2);
 }
 
 .log-error {

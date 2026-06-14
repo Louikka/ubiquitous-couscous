@@ -5,11 +5,11 @@
         {
             @if (message.type === 'message')
             {
-                <div class="log-message">{{ message.content.user }}: {{ message.content.text }}</div>
+                <div class="log-message">{{ message.user }}: {{ message.text }}</div>
             }
             @else if (message.type === 'error')
             {
-                <div class="log-error font-mono">{{ message.content.text }}</div>
+                <div class="log-error font-mono">{{ message.text }}</div>
             }
         }
     </div>

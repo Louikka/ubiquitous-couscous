@@ -1,6 +1,6 @@
 import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { Auth } from '../auth';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -32,34 +32,31 @@ export class Register
         ev.preventDefault();
 
         const username = this.registerUsername?.nativeElement.value;
+        const password = this.registerPassword?.nativeElement.value;
+        const passwordRepeat = this.registerPasswordRepeat?.nativeElement.value;
 
-        const password1 = this.registerPassword?.nativeElement.value;
-        const password2 = this.registerPasswordRepeat?.nativeElement.value;
-
-        if (username === undefined || password1 === undefined || password2 === undefined)
+        if (username === undefined || password === undefined || passwordRepeat === undefined)
         {
             this.errorMessage$.next('Undefined username of password.');
             return;
         }
 
-        if (password1 !== password2)
+        if (password !== passwordRepeat)
         {
             this.errorMessage$.next('Passwords are not matching.');
             return;
         }
 
-        this.authService.signIn(username, password1).subscribe((res) =>
+        this.authService.signIn(username, password).subscribe((ok) =>
         {
-            console.debug(res);
-
-            if (!res.ok)
-            {
-                this.errorMessage$.next(res.message ?? 'An error occured.');
-            }
-            else
+            if (ok)
             {
                 this.router.navigate([ '/' ]);
                 this.errorMessage$.next(null);
+            }
+            else
+            {
+                this.errorMessage$.next('An error occured.');
             }
         });
     }

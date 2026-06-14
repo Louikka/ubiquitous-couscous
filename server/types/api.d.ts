@@ -3,33 +3,68 @@ export interface UserCredentials {
     password: string;
 }
 
-
-
-export interface RegisterResponseInterface {
-    token: string;
+export interface UserMessage {
+    text: string;
+    timestamp: number;
 }
 
-export interface LoginResponseInterface {
-    token: string;
+export interface ChatMessage extends UserMessage {
+    username: string;
 }
 
 
-export type Message = {
-    type: 'message';
-    /** Timestamp (in ms) when the message was sent. */
-    timestamp: number;
-    content: {
-        user: string;
-        text: string;
-    };
-};
-export type Error = {
-    type: 'error';
-    /** Timestamp (in ms) when the error occured. */
-    timestamp: number;
-    content: {
-        text: string;
-    };
-};
 
-export type ChatMessage = Message | Error;
+export namespace API {
+
+    namespace register {
+        namespace get {}
+        namespace post {
+            namespace req {
+                interface body {
+                    username: string;
+                    password: string;
+                }
+            }
+            namespace res {
+                interface body {
+                    token: string;
+                }
+            }
+        }
+    }
+
+    namespace login {
+        namespace get {}
+        namespace post {
+            namespace req {
+                interface body {
+                    username: string;
+                    password: string;
+                }
+            }
+            namespace res {
+                interface body {
+                    token: string;
+                }
+            }
+        }
+    }
+
+    namespace messages {
+        namespace get {
+            namespace req {
+                interface body {
+                    username: string;
+                }
+            }
+            namespace res {}
+        }
+        namespace post {
+            namespace req {
+                interface body extends ChatMessage {}
+            }
+            namespace res {}
+        }
+    }
+
+}
