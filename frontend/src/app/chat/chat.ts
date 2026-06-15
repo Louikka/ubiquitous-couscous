@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { ChatAside } from '../chat-aside/chat-aside';
-import { ChatBody } from '../chat-body/chat-body';
+import { RouterOutlet } from '@angular/router';
 
 
 @Component({
     selector: 'app-chat',
-    imports: [ ChatAside, ChatBody, ],
+    imports: [ RouterOutlet, ChatAside ],
     templateUrl: './chat.html',
     styleUrl: './chat.css',
 })

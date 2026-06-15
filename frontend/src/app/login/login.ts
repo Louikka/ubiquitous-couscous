@@ -42,7 +42,7 @@ export class Login
         {
             if (ok)
             {
-                this.router.navigate([ '/' ]);
+                this.router.navigate([ '/chat' ]);
                 this.errorMessage$.next(null);
             }
             else
