@@ -57,10 +57,19 @@ body {
     color : var(--app-font-color);
 }
 body[data-theme="light"] {
-    /* This is default theme. */
+    --app-global-background-color : var(--color-neutral-100);
+    --app-area-background-color : var(--color-neutral-200);
+
+    --app-font-color : var(--color-neutral-950);
+
+    --app-button-background-color : var(--color-neutral-600);
+    --app-button-hover-background-color : var(--color-neutral-700);
+    --app-button-font-color : var(--color-neutral-200);
+
+    --app-input-background-color : var(--color-neutral-300);
 }
 body[data-theme="dark"] {
-    --app-bg-color : oklch(20.5% 0 0);
+    /* */
 }
 
 
@@ -85,57 +94,50 @@ body[data-theme="dark"] {
 .scrollable {
     overflow : auto;
     scrollbar-width : thin;
-    scrollbar-color : var(--app-sub-bg-color) transparent;
+    scrollbar-color : var(--color-neutral-300) transparent;
     scrollbar-gutter : stable;
     overscroll-behavior : contain;
 
     min-height : 0;
 }
 
-.bg-pattern {
-    background :
-        radial-gradient(
-            circle,
-            transparent 20%,
-            var(--app-sub-bg-color) 20%,
-            var(--app-sub-bg-color) 80%,
-            transparent 80%,
-            transparent
-        ),
-        radial-gradient(
-            circle,
-            transparent 20%,
-            var(--app-sub-bg-color) 20%,
-            var(--app-sub-bg-color) 80%,
-            transparent 80%,
-            transparent
-        ) 25px 25px,
-        linear-gradient(
-            var(--app-sub-accent-color) 2px,
-            transparent 2px
-        ) 0 -1px,
-        linear-gradient(
-            90deg,
-            var(--app-sub-accent-color) 2px,
-            var(--app-sub-bg-color) 2px
-        ) -1px 0
-    ;
-    background-size : 50px 50px, 50px 50px, 25px 25px, 25px 25px;
+.app-area {
+    background-color : var(--app-area-background-color);
+    border-radius : 1rem;
 }
 
 .app-button {
-    background-color : var(--app-sub-accent-color);
-    border-radius : var(--radius-sm);
+    background-color : var(--app-button-background-color);
+    border-radius : 999em;
 
-    color : var(--color-neutral-100);
+    color : var(--app-button-font-color);
+}
+.app-button:hover {
+    background-color : var(--app-button-hover-background-color);
 }
 
 .app-input {
-    background-color : var(--app-sub-bg-color);
-    border-radius : var(--radius-sm);
+    background-color : var(--app-input-background-color);
+    border-radius : 999em;
 }
 
 .app-link {
     color : var(--app-sub-accent-color);
     text-decoration : underline solid;
+}
+
+.background-pattern {
+    --size: 50px;
+    --decoration-color: var(--color-purple-300);
+
+    background:
+        linear-gradient(45deg,
+            transparent 71%,
+            var(--decoration-color) 0 79%,
+            transparent 0) calc(var(--size) / -2) calc(var(--size) / 2)/calc(2 * var(--size)) calc(2 * var(--size)),
+        linear-gradient(135deg,
+            transparent 71%,
+            var(--decoration-color) 0 79%,
+            transparent 0) calc(var(--size) / 2) calc(var(--size) / 2)/calc(2 * var(--size)) calc(2 * var(--size)),
+        radial-gradient(var(--decoration-color) 35%, transparent 37%) 0 0/var(--size) var(--size);
 }

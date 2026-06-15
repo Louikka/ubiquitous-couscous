@@ -1,14 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-
-import { LoginResponseInterface } from '../types/server_api_typings';
-import { catchError, EMPTY, Observable, Subject, Subscription, timeout } from 'rxjs';
-
-
-interface LogInResponse {
-    ok: boolean;
-    message?: string;
-}
+import { Observable, Subject } from 'rxjs';
+import { API } from '../types/server_api_typings';
 
 
 @Injectable({
@@ -19,81 +12,74 @@ export class Auth
     private http = inject(HttpClient);
 
     private jwtToken: string | null = null;
+    public username: string | null = null;
 
 
-    public signIn(username: string, password: string)
+    public signIn(username: string, password: string): Observable<boolean>
     {
-        const r = new Subject<LogInResponse>();
+        const isOk = new Subject<boolean>();
 
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
-        this.http.post<LoginResponseInterface>(
+        this.http.post<API.register.post.res.body>(
             '/api/register',
             JSON.stringify({ username, password }),
             { headers }
         ).subscribe({
+            next: (res) =>
+            {
+                this.jwtToken = res.token;
+                this.username = username;
+
+                isOk.next(true);
+            },
             error: (err) =>
             {
                 console.error(err);
 
-                r.next({
-                    ok: false,
-                    message: 'Username or password is invalid.',
-                });
+                isOk.next(false);
             },
             complete: () =>
             {
                 //
             },
-            next: (res) =>
-            {
-                this.jwtToken = res.token;
-
-                r.next({
-                    ok: true,
-                });
-            },
         });
 
 
-        return r.asObservable();
+        return isOk.asObservable();
     }
 
 
-    public logIn(username: string, password: string): Observable<LogInResponse>
+    public logIn(username: string, password: string): Observable<boolean>
     {
-        const r = new Subject<LogInResponse>();
+        const isOk = new Subject<boolean>();
 
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
-        this.http.post<LoginResponseInterface>(
+        this.http.post<API.login.post.res.body>(
             '/api/login',
             JSON.stringify({ username, password }),
             { headers }
         ).subscribe({
+            next: (res) =>
+            {
+                this.jwtToken = res.token;
+                this.username = username;
+
+                isOk.next(true);
+            },
             error: (err) =>
             {
                 console.error(err);
 
-                r.next({
-                    ok: false,
-                    message: 'Username or password is invalid.',
-                });
+                isOk.next(false);
             },
             complete: () =>
             {
                 //
             },
-            next: (res) =>
-            {
-                this.jwtToken = res.token;
-
-                r.next({
-                    ok: true,
-                });
-            },
         });
 
 
-        return r.asObservable();
+        return isOk.asObservable();
     }
 
     public logOut()

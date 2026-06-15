@@ -2,8 +2,22 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
+import { ChatMessage } from '../types/server_api_typings';
 
-import * as ServerAPITypings from '../types/server_api_typings';
+
+interface ChatDisplayMessage {
+    type : 'message';
+    user: string;
+    text: string;
+    timestamp: number;
+}
+interface ChatDisplayError {
+    type : 'error';
+    text: string;
+    timestamp: number;
+}
+
+export type ChatDisplayContent = ChatDisplayMessage | ChatDisplayError;
 
 
 @Injectable({
@@ -17,54 +31,50 @@ export class Messages
         {
             for (const m of val)
             {
-                this.messages$.next(m);
+                this.messages$.next(this.newDisplayMessage(m));
             }
         });
 
         this.ws$.subscribe((val) =>
         {
-            this.messages$.next(val);
+            this.messages$.next(this.newDisplayMessage(val));
         });
     }
 
 
     private http = inject(HttpClient);
-    private ws$ = webSocket<ServerAPITypings.ChatMessage>(`ws://${window.location.hostname}:8080`);
+    private ws$ = webSocket<ChatMessage>(`ws://${window.location.hostname}:8080`);
 
-    public readonly messages$ = new ReplaySubject<ServerAPITypings.ChatMessage>();
+    public readonly messages$ = new ReplaySubject<ChatDisplayContent>();
 
 
-    /** Constructor for new text message. */
-    public newTextMessage(username: string, text: string, timestamp = Date.now()): ServerAPITypings.Message
+    /** Constructor for new display message. */
+    public newDisplayMessage(from: ChatMessage): ChatDisplayMessage
     {
         return {
             type: 'message',
-            timestamp,
-            content: {
-                user: username,
-                text,
-            },
+            user: from.username,
+            text: from.text,
+            timestamp: from.timestamp,
         };
     }
     /** Constructor for new error message. */
-    public newErrorMessage(text: string, timestamp = Date.now()): ServerAPITypings.Error
+    public newDisplayError(text: string): ChatDisplayError
     {
         return {
             type: 'error',
-            timestamp,
-            content: {
-                text,
-            },
+            text,
+            timestamp: Date.now(),
         };
     }
 
 
-    public getMessages(): Observable<ServerAPITypings.ChatMessage[]>
+    public getMessages(): Observable<ChatMessage[]>
     {
-        return this.http.get<ServerAPITypings.ChatMessage[]>('/api/messages');
+        return this.http.get<ChatMessage[]>('/api/messages');
     }
 
-    public sendMessage(message: ServerAPITypings.Message): Observable<null | boolean>
+    public sendMessage(message: ChatMessage): Observable<null | boolean>
     {
         console.debug('Sending message...');
 
@@ -78,7 +88,7 @@ export class Messages
                 console.error(err);
                 isSuccessful.next(false);
                 this.messages$.next(
-                    this.newErrorMessage(err)
+                    this.newDisplayError(err)
                 );
             },
             complete: () =>
@@ -98,7 +108,7 @@ export class Messages
     public sendClientTestError()
     {
         this.messages$.next(
-            this.newErrorMessage('test error')
+            this.newDisplayError('test error')
         );
     }
 }

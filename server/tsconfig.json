@@ -19,6 +19,7 @@
     //"sourceMap": true,
     //"declaration": true,
     //"declarationMap": true,
+    "noEmit": true,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
@@ -26,10 +27,10 @@
 
     // Style Options
     // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
+    "noImplicitOverride": true,
     // "noUnusedLocals": true,
     // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
 
     // Recommended Options
@@ -41,5 +42,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true
   }
 }

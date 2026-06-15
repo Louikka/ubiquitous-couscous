@@ -38,18 +38,16 @@ export class Login
             return;
         }
 
-        this.authService.logIn(username, password).subscribe((res) =>
+        this.authService.logIn(username, password).subscribe((ok) =>
         {
-            console.debug(res);
-
-            if (!res.ok)
-            {
-                this.errorMessage$.next(res.message ?? 'An error occured.');
-            }
-            else
+            if (ok)
             {
                 this.router.navigate([ '/' ]);
                 this.errorMessage$.next(null);
+            }
+            else
+            {
+                this.errorMessage$.next('An error occured.');
             }
         });
     }
