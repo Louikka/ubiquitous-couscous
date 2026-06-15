@@ -28,7 +28,6 @@ export class ChatBody
     formInputText: ElementRef<HTMLInputElement> | null = null;
 
 
-    private readonly authService = inject(Auth);
     private readonly messagesService = inject(Messages);
 
     private _messagesState = [] as ChatDisplayContent[];
@@ -44,18 +43,7 @@ export class ChatBody
             const inputValue = input.value.trim();
             if (inputValue.length <= 0) return;
 
-            const username = this.authService.username;
-            if (username === null)
-            {
-                console.error(`???`);
-                return;
-            }
-
-            this.messagesService.sendMessage({
-                username,
-                text: inputValue,
-                timestamp: Date.now(),
-            });
+            this.messagesService.sendMessage(inputValue);
 
             input.value = '';
         }

@@ -1,10 +1,11 @@
 import express from 'express';
 import { WebSocketServer } from 'ws';
 import jwt from 'jsonwebtoken';
+import { expressjwt, type Request as JWTRequest } from 'express-jwt';
 
 import { RedisClient } from './lib/db.ts';
 import { verifyPassword } from './lib/lib.ts';
-import type { API } from './types/api.d.ts';
+import type { API, ChatMessage } from './types/api.d.ts';
 
 
 const SERVER_PORT = 3000;
@@ -53,8 +54,11 @@ wss.on('connection', async (ws) =>
 
 const app = express();
 
+const jwtMiddleware = expressjwt({ secret: JWT_PRIVATE_KEY, algorithms: [ 'HS256' ] });
+
 // middleware to parse req.body as JSON
 app.use(express.json());
+app.use('/api', jwtMiddleware.unless({ path: [ '/api/register', '/api/login' ] }));
 
 
 app.get('/', (req, res) =>
@@ -106,19 +110,30 @@ app.get('/api/messages', async (req, res) =>
     res.send(await db.getChatMessages());
 });
 
-app.post('/api/messages', async (req, res) =>
+app.post('/api/messages', async (req: JWTRequest, res) =>
 {
-    const chatMessage = req.body as API.messages.post.req.body;
-    console.debug(`New message :`, chatMessage);
+    const reqAuth = req.auth;
+    if (reqAuth === undefined)
+    {
+        console.error('Cannot get jwt token in /api/messages POST request.');
+        return;
+    }
 
-    if (chatMessage === undefined)
+    const reqBody = req.body as API.messages.post.req.body;
+    if (reqBody === undefined)
     {
         console.error(`Cannot parse request's body (returns "undefined").`);
         // TODO : send response with error?
         return;
     }
 
-    db.addChatMessage(chatMessage);
+    const userChatMessage = {
+        username: reqAuth.username,
+        text: reqBody.message,
+        timestamp: Date.now(),
+    } as ChatMessage;
+
+    db.addChatMessage(userChatMessage);
 
 
     // sending new message via ws
@@ -126,9 +141,11 @@ app.post('/api/messages', async (req, res) =>
     {
         if (ws.readyState === ws.OPEN)
         {
-            ws.send(JSON.stringify(chatMessage));
+            ws.send(JSON.stringify(userChatMessage));
         }
     }
+
+    res.status(200).end();
 });
 
 

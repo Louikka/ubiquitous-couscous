@@ -2,7 +2,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
-import { ChatMessage } from '../types/server_api_typings';
+import { API, ChatMessage } from '../types/server_api_typings';
+import { Auth } from './auth';
 
 
 interface ChatDisplayMessage {
@@ -42,8 +43,8 @@ export class Messages
     }
 
 
-    private http = inject(HttpClient);
-    private ws$ = webSocket<ChatMessage>(`ws://${window.location.hostname}:8080`);
+    private readonly http = inject(HttpClient);
+    private readonly ws$ = webSocket<ChatMessage>(`ws://${window.location.hostname}:8080`);
 
     public readonly messages$ = new ReplaySubject<ChatDisplayContent>();
 
@@ -74,35 +75,37 @@ export class Messages
         return this.http.get<ChatMessage[]>('/api/messages');
     }
 
-    public sendMessage(message: ChatMessage): Observable<null | boolean>
+    public sendMessage(message: string): Observable<null | boolean>
     {
-        console.debug('Sending message...');
-
-        let isSuccessful = new BehaviorSubject<null | boolean>(null);
+        let isOk = new BehaviorSubject<null | boolean>(null);
 
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
+
         // http.post won't work unless subscribed ("cold" observable)
-        this.http.post('/api/messages', JSON.stringify(message), { headers, }).subscribe({
+        this.http.post(
+            '/api/messages',
+            JSON.stringify({ message } as API.messages.post.req.body),
+            { headers }
+        ).subscribe({
+            next: (val) =>
+            {
+                isOk.next(true);
+            },
             error: (err) =>
             {
                 console.error(err);
-                isSuccessful.next(false);
+                isOk.next(false);
                 this.messages$.next(
                     this.newDisplayError(err)
                 );
             },
             complete: () =>
             {
-                isSuccessful.next(true);
-            },
-            next: (val) =>
-            {
-                console.log(val);
-                isSuccessful.next(true);
+                isOk.next(true);
             },
         });
 
-        return isSuccessful;
+        return isOk.asObservable();
     }
 
     public sendClientTestError()

@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { API } from '../types/server_api_typings';
 
 
@@ -9,17 +9,18 @@ import { API } from '../types/server_api_typings';
 })
 export class Auth
 {
-    private http = inject(HttpClient);
+    private readonly http = inject(HttpClient);
 
-    private jwtToken: string | null = null;
+    public jwtToken: string | null = null;
     public username: string | null = null;
 
 
-    public signIn(username: string, password: string): Observable<boolean>
+    public signIn(username: string, password: string): Observable<boolean | null>
     {
-        const isOk = new Subject<boolean>();
+        let isOk = new BehaviorSubject<null | boolean>(null);
 
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
+
         this.http.post<API.register.post.res.body>(
             '/api/register',
             JSON.stringify({ username, password }),
@@ -49,11 +50,12 @@ export class Auth
     }
 
 
-    public logIn(username: string, password: string): Observable<boolean>
+    public logIn(username: string, password: string): Observable<boolean | null>
     {
-        const isOk = new Subject<boolean>();
+        let isOk = new BehaviorSubject<null | boolean>(null);
 
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
+
         this.http.post<API.login.post.res.body>(
             '/api/login',
             JSON.stringify({ username, password }),

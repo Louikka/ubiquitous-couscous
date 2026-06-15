@@ -3,13 +3,10 @@ export interface UserCredentials {
     password: string;
 }
 
-export interface UserMessage {
+export interface ChatMessage {
+    username: string;
     text: string;
     timestamp: number;
-}
-
-export interface ChatMessage extends UserMessage {
-    username: string;
 }
 
 
@@ -61,7 +58,9 @@ export namespace API {
         }
         namespace post {
             namespace req {
-                interface body extends ChatMessage {}
+                interface body {
+                    message: string;
+                }
             }
             namespace res {}
         }

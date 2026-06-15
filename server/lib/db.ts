@@ -1,6 +1,6 @@
 import redis from 'redis';
 import { createHashFromString, hashPassword } from './lib.ts';
-import type { ChatMessage, UserMessage } from '../types/api.js';
+import type { ChatMessage } from '../types/api.js';
 
 
 export interface DBUserEntry {
@@ -8,7 +8,10 @@ export interface DBUserEntry {
     /** Encoded. */
     password: string;
     salt: string;
-    messages: Array<UserMessage>;
+    messages: Array<{
+        text: string;
+        timestamp: number;
+    }>;
 }
 
 
@@ -70,7 +73,7 @@ export class RedisClient
         const hashedPassword = hashPassword(password);
 
         const userDBName = `USER_${createHashFromString(username)}`;
-        console.debug('New user added :', userDBName);
+        console.debug(`New user added : ${username} ${userDBName}`);
 
         await this.client.set(userDBName, JSON.stringify({
             username,
@@ -108,20 +111,6 @@ export class RedisClient
         return regUsers;
     }
 
-    public async addUserMessage(username: string, message: UserMessage)
-    {
-        const user = await this.getUser(username);
-        if (user === null)
-        {
-            console.error(`Unable to add message to the user "${username}".`);
-            return;
-        }
-
-        user.messages.push(message);
-
-        await this.client.set(`USER_${createHashFromString(username)}`, JSON.stringify(user));
-    }
-
 
     public async getChatMessages(): Promise<ChatMessage[]>
     {
@@ -142,8 +131,20 @@ export class RedisClient
         return messages;
     }
 
-    public async addChatMessage(m: ChatMessage)
+    public async addChatMessage(message: ChatMessage)
     {
-        await this.addUserMessage(m.username, { text: m.text, timestamp: m.timestamp });
+        const user = await this.getUser(message.username);
+        if (user === null)
+        {
+            console.error(`Unable to add message to the user "${message.username}".`);
+            return;
+        }
+
+        user.messages.push({
+            text: message.text,
+            timestamp: message.timestamp,
+        });
+
+        await this.client.set(`USER_${createHashFromString(message.username)}`, JSON.stringify(user));
     }
 }
