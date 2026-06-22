@@ -49,6 +49,8 @@ export class Register
 
         this.authService.signIn(username, password).subscribe((ok) =>
         {
+            if (ok === null) return;
+
             if (ok)
             {
                 this.router.navigate([ '/chat' ]);

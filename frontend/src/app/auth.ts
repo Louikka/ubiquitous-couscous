@@ -9,10 +9,30 @@ import { API } from '../types/server_api_typings';
 })
 export class Auth
 {
+    constructor()
+    {
+        const lsToken = localStorage.getItem('jwttoken');
+        if (lsToken !== null)
+        {
+            console.debug('Found saved JWT token.');
+            this.jwtToken = lsToken;
+        }
+    }
+
+
     private readonly http = inject(HttpClient);
 
     public jwtToken: string | null = null;
     public username: string | null = null;
+
+
+    private saveCredentials(token: string, username: string)
+    {
+        this.jwtToken = token;
+        this.username = username;
+
+        localStorage.setItem('jwttoken', token);
+    }
 
 
     public signIn(username: string, password: string): Observable<boolean | null>
@@ -28,15 +48,12 @@ export class Auth
         ).subscribe({
             next: (res) =>
             {
-                this.jwtToken = res.token;
-                this.username = username;
-
+                this.saveCredentials(res.token, username);
                 isOk.next(true);
             },
             error: (err) =>
             {
                 console.error(err);
-
                 isOk.next(false);
             },
             complete: () =>
@@ -63,15 +80,12 @@ export class Auth
         ).subscribe({
             next: (res) =>
             {
-                this.jwtToken = res.token;
-                this.username = username;
-
+                this.saveCredentials(res.token, username);
                 isOk.next(true);
             },
             error: (err) =>
             {
                 console.error(err);
-
                 isOk.next(false);
             },
             complete: () =>

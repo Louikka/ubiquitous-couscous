@@ -46,3 +46,18 @@ export function verifyPassword(password: string, hash: string, salt: string)
     const hashedPassword = crypto.scryptSync(password, salt, 64).toString('hex');
     return hashedPassword === hash;
 }
+
+
+export function safeJSONParse<T>(s: string, fallbackValue: T): T
+{
+    try
+    {
+        return JSON.parse(s);
+    }
+    catch (err)
+    {
+        console.error(err);
+    }
+
+    return fallbackValue;
+}

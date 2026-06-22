@@ -105,9 +105,37 @@ app.post('/api/login', async (req, res) =>
 });
 
 
+app.get('/api/chat', async (req, res) =>
+{
+    //
+});
+
+app.post('/api/chat', async (req: JWTRequest, res) =>
+{
+    const reqAuth = req.auth;
+    if (reqAuth === undefined)
+    {
+        console.error('Cannot get JWT token in /api/chat POST request.');
+        return;
+    }
+
+    const reqBody = req.body as API.chat.post.req.body;
+    if (reqBody === undefined)
+    {
+        console.error(`Cannot parse request's body (returns "undefined").`);
+        // TODO : send response with error?
+        return;
+    }
+
+    db.addNewChat(reqBody.chat_id, reqBody.chat_name, reqAuth.username);
+
+    res.status(200).end();
+});
+
+
 app.get('/api/messages', async (req, res) =>
 {
-    res.send(await db.getChatMessages());
+    //
 });
 
 app.post('/api/messages', async (req: JWTRequest, res) =>
@@ -133,17 +161,17 @@ app.post('/api/messages', async (req: JWTRequest, res) =>
         timestamp: Date.now(),
     } as ChatMessage;
 
-    db.addChatMessage(userChatMessage);
+    //db.addChatMessage(userChatMessage);
 
 
     // sending new message via ws
-    for (const ws of wss.clients)
-    {
-        if (ws.readyState === ws.OPEN)
-        {
-            ws.send(JSON.stringify(userChatMessage));
-        }
-    }
+    // for (const ws of wss.clients)
+    // {
+    //     if (ws.readyState === ws.OPEN)
+    //     {
+    //         ws.send(JSON.stringify(userChatMessage));
+    //     }
+    // }
 
     res.status(200).end();
 });

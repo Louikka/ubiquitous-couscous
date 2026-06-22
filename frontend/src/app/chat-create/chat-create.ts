@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Chats } from '../chats';
 
 
 @Component({
@@ -9,5 +10,38 @@ import { Component } from '@angular/core';
 })
 export class ChatCreate
 {
-    //
+    @ViewChild('chatName')
+    private chatName: ElementRef<HTMLInputElement> | null = null;
+
+
+    private readonly chatsService = inject(Chats);
+
+
+    public onSubmit(ev: SubmitEvent)
+    {
+        ev.preventDefault();
+
+        const chatName = this.chatName?.nativeElement.value;
+
+        if (chatName === undefined)
+        {
+            console.error('Undefined chat name.');
+            return;
+        }
+
+
+        this.chatsService.addNewChat('abc123', chatName).subscribe((ok) =>
+        {
+            if (ok === null) return;
+
+            if (ok)
+            {
+                //
+            }
+            else
+            {
+                //
+            }
+        });
+    }
 }

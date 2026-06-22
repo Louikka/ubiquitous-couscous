@@ -8,11 +8,21 @@ export interface DBUserEntry {
     /** Encoded. */
     password: string;
     salt: string;
-    messages: Array<{
-        text: string;
-        timestamp: number;
-    }>;
+    /** ID's of chats. */
+    active_chats: Array<string>;
+    own_chats: Array<string>;
 }
+
+export interface DBChatEntry {
+    id: string;
+    name: string;
+    /** User's name. */
+    owner: string;
+    messages: Array<ChatMessage>;
+}
+
+type _DBChatEntry = Omit<DBChatEntry, 'messages'>;
+type _DBCharEntryMessages = DBChatEntry['messages'];
 
 
 export class RedisClient
@@ -30,121 +40,171 @@ export class RedisClient
 
     public readonly client;
 
-
     public async connect()
     {
         await this.client.connect();
     }
 
 
+    private getDBKeyFrom(value: string, as: 'user' | 'chat'): string
+    {
+        let s = '';
+
+        switch (as)
+        {
+            case 'user':
+            {
+                s += 'USER';
+                break;
+            }
+            case 'chat':
+            {
+                s += 'CHAT';
+                break;
+            }
+
+            default:
+            {
+                throw new Error(`Undefined function argument "${as}"`);
+            }
+        }
+
+        s += createHashFromString(value);
+
+        return s;
+    }
+
+
     public async isUserExists(username: string): Promise<boolean>
     {
-        const user = await this.client.get(`USER_${createHashFromString(username)}`);
-
-        return user !== null;
+        return await this.client.exists(this.getDBKeyFrom(username, 'user')) > 0;
     }
 
     public async getUser(username: string): Promise<DBUserEntry | null>
     {
-        const user = await this.client.get(`USER_${createHashFromString(username)}`);
-
-        try
-        {
-            if (user !== null)
-            {
-                return JSON.parse(user) as DBUserEntry;
-            }
-            else
-            {
-                console.debug(`Unable to get user "${username}".`);
-            }
-        }
-        catch (err)
-        {
-            console.error('An error occured while trying to parse UserEntry from server :', err);
-            console.debug('Initial data that failed to parse :', user);
-        }
-
-        return null;
-    }
-
-    public async addNewUser(username: string, password: string)
-    {
-        const hashedPassword = hashPassword(password);
-
-        const userDBName = `USER_${createHashFromString(username)}`;
-        console.debug(`New user added : ${username} ${userDBName}`);
-
-        await this.client.set(userDBName, JSON.stringify({
-            username,
-            password: hashedPassword.hash,
-            salt: hashedPassword.salt,
-            messages: [],
-        } as DBUserEntry));
-
-        await this.client.rPush('REGISTERED_USERS', userDBName);
-    }
-
-
-    private async getRegisteredUsers(): Promise<DBUserEntry[]>
-    {
-        const regUsers: DBUserEntry[] = [];
-
-        const users = await this.client.lRange('REGISTERED_USERS', 0, -1);
-
-        for (const username of users)
+        if (await this.isUserExists(username))
         {
             try
             {
-                const user = await this.client.get(username);
-                if (user !== null)
+                const user = {} as DBUserEntry;
+
+                const _dbUser = await this.client.hGetAll(this.getDBKeyFrom(username, 'user'));
+                for (const [key, value] of Object.entries(_dbUser))
                 {
-                    regUsers.push(JSON.parse(user));
+                    switch (key)
+                    {
+                        case 'active_chats':
+                        {
+                            user.active_chats = JSON.parse(value);
+                            break;
+                        }
+                        case 'own_chats':
+                        {
+                            user.own_chats = JSON.parse(value);
+                            break;
+                        }
+
+                        default:
+                        {
+                            user[key as keyof Omit<DBUserEntry, 'active_chats' | 'own_chats'>] = value;
+                        }
+                    }
                 }
+
+                return user;
             }
             catch (err)
             {
                 console.error(err);
             }
         }
+        else
+        {
+            console.debug(`Unable to get user "${username}".`);
+        }
 
-        return regUsers;
+        return null;
     }
 
 
-    public async getChatMessages(): Promise<ChatMessage[]>
+    public async isChatExists(chatId: string): Promise<boolean>
     {
-        const messages: Array<ChatMessage> = [];
-
-        const regUsers = await this.getRegisteredUsers();
-
-        for (const user of regUsers)
-        {
-            messages.push(...user.messages.map(m => ({ username: user.username, ...m })));
-        }
-
-        if (messages.length > 1)
-        {
-            messages.sort((a, b) => a.timestamp - b.timestamp);
-        }
-
-        return messages;
+        return await this.client.exists(this.getDBKeyFrom(chatId, 'chat')) > 0;
     }
 
-    public async addChatMessage(message: ChatMessage)
+    public async getChat(chatId: string): Promise<DBChatEntry | null>
     {
-        const user = await this.getUser(message.username);
-        if (user === null)
+        if (await this.isChatExists(chatId))
         {
-            console.error(`Unable to add message to the user "${message.username}".`);
+            try
+            {
+                const chat: DBChatEntry = {
+                    id: '',
+                    name: '',
+                    owner: '',
+                    messages: [],
+                };
+
+                const _dbChat = await this.client.hGetAll(this.getDBKeyFrom(chatId, 'chat'));
+                for (const [key, value] of Object.entries(_dbChat))
+                {
+                    chat[key as keyof _DBChatEntry] = value;
+                }
+
+                const _dbChatMessages = await this.client.lRange(this.getDBKeyFrom(chatId, 'chat') + ':MESSAGES', 0, -1);
+                for (const message of _dbChatMessages)
+                {
+                    chat.messages.push(JSON.parse(message));
+                }
+
+                return chat;
+            }
+            catch (err)
+            {
+                console.error(err);
+            }
+        }
+        else
+        {
+            console.debug(`Unable to get chat "${chatId}".`);
+        }
+
+        return null;
+    }
+
+
+    public async addNewUser(username: string, password: string)
+    {
+        const userDBKey = this.getDBKeyFrom(username, 'user');
+        const hashedPassword = hashPassword(password);
+
+        await this.client.hSet(userDBKey, 'username', username);
+        await this.client.hSet(userDBKey, 'password', hashedPassword.hash);
+        await this.client.hSet(userDBKey, 'salt', hashedPassword.salt);
+        await this.client.hSet(userDBKey, 'active_chats', '[]');
+        await this.client.hSet(userDBKey, 'own_chats', '[]');
+    }
+
+    public async addNewChat(chatId: string, name: string, owner: string)
+    {
+        if (await this.isChatExists(chatId))
+        {
+            console.warn(`Chat with id "${chatId}" already exists.`);
             return;
         }
 
-        user.messages.push({
-            text: message.text,
-            timestamp: message.timestamp,
-        });
+        if (!await this.isUserExists(owner))
+        {
+            console.warn(`User "${owner}" does not exists.`);
+            return;
+        }
 
-        await this.client.set(`USER_${createHashFromString(message.username)}`, JSON.stringify(user));
+        const chatDBKey = this.getDBKeyFrom(chatId, 'chat');
+
+        await this.client.hSet(chatDBKey, 'id', chatId);
+        await this.client.hSet(chatDBKey, 'name', name);
+        await this.client.hSet(chatDBKey, 'owner', owner);
+
+        console.debug('Successfully added new chat :', chatId, name);
     }
 }
