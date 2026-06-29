@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { API } from '../types/server_api_typings';
+import { API, UserData } from '../types/server_api_typings';
 
 
 @Injectable({
@@ -16,6 +16,8 @@ export class Auth
         {
             console.debug('Found saved JWT token.');
             this.jwtToken = lsToken;
+
+            this.loadUserData();
         }
     }
 
@@ -23,15 +25,35 @@ export class Auth
     private readonly http = inject(HttpClient);
 
     public jwtToken: string | null = null;
-    public username: string | null = null;
+    public userData: UserData | null = null;
 
 
-    private saveCredentials(token: string, username: string)
+    private saveToken(token: string)
     {
         this.jwtToken = token;
-        this.username = username;
-
         localStorage.setItem('jwttoken', token);
+    }
+
+    private loadUserData()
+    {
+        const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
+        this.http.get<API.user.get.res.body>(
+            '/api/user',
+            { headers }
+        ).subscribe({
+            next: (res) =>
+            {
+                this.userData = res;
+            },
+            error: (err) =>
+            {
+                console.error(err);
+            },
+            complete: () =>
+            {
+                //
+            },
+        });
     }
 
 
@@ -40,7 +62,6 @@ export class Auth
         let isOk = new BehaviorSubject<null | boolean>(null);
 
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
-
         this.http.post<API.register.post.res.body>(
             '/api/register',
             JSON.stringify({ username, password }),
@@ -48,7 +69,8 @@ export class Auth
         ).subscribe({
             next: (res) =>
             {
-                this.saveCredentials(res.token, username);
+                this.saveToken(res.token);
+                this.loadUserData();
                 isOk.next(true);
             },
             error: (err) =>
@@ -61,7 +83,6 @@ export class Auth
                 //
             },
         });
-
 
         return isOk.asObservable();
     }
@@ -72,7 +93,6 @@ export class Auth
         let isOk = new BehaviorSubject<null | boolean>(null);
 
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', });
-
         this.http.post<API.login.post.res.body>(
             '/api/login',
             JSON.stringify({ username, password }),
@@ -80,7 +100,8 @@ export class Auth
         ).subscribe({
             next: (res) =>
             {
-                this.saveCredentials(res.token, username);
+                this.saveToken(res.token);
+                this.loadUserData();
                 isOk.next(true);
             },
             error: (err) =>
@@ -93,7 +114,6 @@ export class Auth
                 //
             },
         });
-
 
         return isOk.asObservable();
     }

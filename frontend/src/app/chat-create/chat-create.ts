@@ -22,21 +22,20 @@ export class ChatCreate
         ev.preventDefault();
 
         const chatName = this.chatName?.nativeElement.value;
-
         if (chatName === undefined)
         {
             console.error('Undefined chat name.');
             return;
         }
 
-
-        this.chatsService.addNewChat('abc123', chatName).subscribe((ok) =>
+        this.chatsService.addNewChat(chatName).subscribe((ok) =>
         {
             if (ok === null) return;
 
             if (ok)
             {
-                //
+                if (this.chatName === null) return;
+                this.chatName.nativeElement.value = '';
             }
             else
             {

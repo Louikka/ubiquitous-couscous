@@ -1,1 +1,8 @@
-<p>chat-join works!</p>
+<div class="w-full h-full flex flex-col gap-4">
+    <div class="app-area  h-full p-4">
+        <form class="w-full h-full flex flex-col justify-center items-center gap-2" (submit)="onSubmit($event)">
+            <label>Name of the chat to join : <input #chatName class="app-input  px-2 py-1" type="text" required /></label>
+            <input class="app-button  px-2 py-1" type="submit" value="Join" />
+        </form>
+    </div>
+</div>

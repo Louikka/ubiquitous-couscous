@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { Auth } from '../auth';
 
 
 @Component({
@@ -11,6 +12,7 @@ import { Router } from '@angular/router';
 export class ChatAside
 {
     private readonly router = inject(Router);
+    public readonly auth = inject(Auth);
 
 
     public toCreate(ev: Event)

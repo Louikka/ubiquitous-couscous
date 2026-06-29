@@ -3,7 +3,7 @@ import { WebSocketServer } from 'ws';
 import jwt from 'jsonwebtoken';
 import { expressjwt, type Request as JWTRequest } from 'express-jwt';
 
-import { RedisClient } from './lib/db.ts';
+import { omitUserSensitiveData, RedisClient } from './lib/db.ts';
 import { verifyPassword } from './lib/lib.ts';
 import type { API, ChatMessage } from './types/api.d.ts';
 
@@ -55,16 +55,23 @@ wss.on('connection', async (ws) =>
 const app = express();
 
 const jwtMiddleware = expressjwt({ secret: JWT_PRIVATE_KEY, algorithms: [ 'HS256' ] });
+// const checkReqBody = (req: express.Request, res: express.Response, next: express.NextFunction) =>
+// {
+//     // ?
+//     next();
+// };
 
 // middleware to parse req.body as JSON
 app.use(express.json());
 app.use('/api', jwtMiddleware.unless({ path: [ '/api/register', '/api/login' ] }));
 
 
+
 app.get('/', (req, res) =>
 {
     res.send(`<p>Hello, world!</p>`);
 });
+
 
 
 app.post('/api/register', async (req, res) =>
@@ -86,6 +93,7 @@ app.post('/api/register', async (req, res) =>
 });
 
 
+
 app.post('/api/login', async (req, res) =>
 {
     const { username, password } = req.body;
@@ -105,13 +113,55 @@ app.post('/api/login', async (req, res) =>
 });
 
 
-app.get('/api/chat', async (req, res) =>
+
+app.get('/api/user', async (req: JWTRequest, res) =>
 {
-    //
+    const reqAuth = req.auth;
+    if (reqAuth === undefined)
+    {
+        console.error('Cannot get JWT token in /api/user GET request.');
+        return;
+    }
+
+    const user = await db.getUser(reqAuth.username);
+    if (user === null)
+    {
+        // user does not exists or credentials are wrong
+        res.status(401).end();
+        return;
+    }
+
+    res.json(omitUserSensitiveData(user) as API.user.get.res.body);
+});
+
+
+
+app.get('/api/chat', async (req: JWTRequest, res) =>
+{
+    const reqBody = req.body as API.chat.get.req.body;
+    if (reqBody === undefined)
+    {
+        console.error(`Cannot parse request's body (returns "undefined").`);
+        // TODO : send response with error?
+        return;
+    }
+
+    const chat = await db.getChat(reqBody.chat_id);
+    if (chat === null)
+    {
+        res.status(404).end();
+        return;
+    }
+
+    res.json({
+        chat,
+    } as API.chat.get.res.body);
 });
 
 app.post('/api/chat', async (req: JWTRequest, res) =>
 {
+    // user request to create new chat
+
     const reqAuth = req.auth;
     if (reqAuth === undefined)
     {
@@ -127,16 +177,17 @@ app.post('/api/chat', async (req: JWTRequest, res) =>
         return;
     }
 
-    db.addNewChat(reqBody.chat_id, reqBody.chat_name, reqAuth.username);
+    db.addNewChat(reqBody.chat_name, reqAuth.username);
 
     res.status(200).end();
 });
 
 
-app.get('/api/messages', async (req, res) =>
-{
-    //
-});
+
+
+
+
+
 
 app.post('/api/messages', async (req: JWTRequest, res) =>
 {

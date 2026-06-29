@@ -10,6 +10,29 @@ export interface ChatMessage {
 }
 
 
+export interface DBUserEntry {
+    username: string;
+    /** Encoded. */
+    password: string;
+    salt: string;
+    /** ID's of chats. */
+    active_chats: Array<string>;
+    own_chats: Array<string>;
+}
+
+export interface DBChatEntry {
+    id: string;
+    name: string;
+    /** User's name. */
+    owner: string;
+    messages: Array<ChatMessage>;
+}
+
+type UserSensitiveData = 'password' | 'salt';
+/** User's data from DB with all sensitive data omitted. */
+export type UserData = Omit<DBUserEntry, UserSensitiveData>;
+
+
 
 export namespace API {
 
@@ -47,15 +70,32 @@ export namespace API {
         }
     }
 
-    namespace chat {
+    namespace user {
         namespace get {
             namespace req {}
-            namespace res {}
+            namespace res {
+                interface body extends UserData {}
+            }
+        }
+        namespace post {}
+    }
+
+    namespace chat {
+        namespace get {
+            namespace req {
+                interface body {
+                    chat_id: string;
+                }
+            }
+            namespace res {
+                interface body {
+                    chat: DBChatEntry;
+                }
+            }
         }
         namespace post {
             namespace req {
                 interface body {
-                    chat_id: string;
                     chat_name: string;
                 }
             }

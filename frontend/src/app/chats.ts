@@ -18,12 +18,11 @@ export class Chats
     private readonly http = inject(HttpClient);
 
 
-    public addNewChat(chatId: string, name: string)
+    public addNewChat(name: string)
     {
         let isOk = new BehaviorSubject<null | boolean>(null);
 
         const body: API.chat.post.req.body = {
-            chat_id: chatId,
             chat_name: name,
         };
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', });

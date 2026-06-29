@@ -1,28 +1,23 @@
+import crypto from 'crypto';
 import redis from 'redis';
 import { createHashFromString, hashPassword } from './lib.ts';
-import type { ChatMessage } from '../types/api.js';
+import type { DBChatEntry, DBUserEntry, UserData, UserSensitiveData } from '../types/api.js';
 
-
-export interface DBUserEntry {
-    username: string;
-    /** Encoded. */
-    password: string;
-    salt: string;
-    /** ID's of chats. */
-    active_chats: Array<string>;
-    own_chats: Array<string>;
-}
-
-export interface DBChatEntry {
-    id: string;
-    name: string;
-    /** User's name. */
-    owner: string;
-    messages: Array<ChatMessage>;
-}
 
 type _DBChatEntry = Omit<DBChatEntry, 'messages'>;
 type _DBCharEntryMessages = DBChatEntry['messages'];
+
+
+export function omitUserSensitiveData(d: DBUserEntry): UserData
+{
+    // see UserSensitiveData in types/api.d.ts
+    [ 'password', 'salt' ].forEach((key) =>
+    {
+        delete d[key as UserSensitiveData];
+    });
+
+    return d;
+}
 
 
 export class RedisClient
@@ -126,6 +121,17 @@ export class RedisClient
         return null;
     }
 
+    public async updateUser(username: string, field: keyof DBUserEntry, value: any)
+    {
+        if (!await this.isUserExists(username))
+        {
+            console.error(`Unable to update field "${field}" of the user "${username}": no such user exists.`);
+            return;
+        }
+
+        this.client.hSet(this.getDBKeyFrom(username, 'user'), field, value);
+    }
+
 
     public async isChatExists(chatId: string): Promise<boolean>
     {
@@ -183,27 +189,31 @@ export class RedisClient
         await this.client.hSet(userDBKey, 'salt', hashedPassword.salt);
         await this.client.hSet(userDBKey, 'active_chats', '[]');
         await this.client.hSet(userDBKey, 'own_chats', '[]');
+
+        console.debug('Successfully added new user :', username);
     }
 
-    public async addNewChat(chatId: string, name: string, owner: string)
+    public async addNewChat(name: string, owner: string)
     {
-        if (await this.isChatExists(chatId))
-        {
-            console.warn(`Chat with id "${chatId}" already exists.`);
-            return;
-        }
-
-        if (!await this.isUserExists(owner))
+        const user = await this.getUser(owner);
+        if (user === null)
         {
             console.warn(`User "${owner}" does not exists.`);
             return;
         }
 
+        const chatId = crypto.randomUUID();
         const chatDBKey = this.getDBKeyFrom(chatId, 'chat');
 
         await this.client.hSet(chatDBKey, 'id', chatId);
         await this.client.hSet(chatDBKey, 'name', name);
         await this.client.hSet(chatDBKey, 'owner', owner);
+
+        user.own_chats.push(chatId);
+        user.active_chats.push(chatId);
+
+        this.updateUser(owner, 'own_chats', JSON.stringify(user.own_chats));
+        this.updateUser(owner, 'active_chats', JSON.stringify(user.active_chats));
 
         console.debug('Successfully added new chat :', chatId, name);
     }
